@@ -1,0 +1,151 @@
+# Plugin System
+
+Zentara's plugin system allows you to extend the input functionality in various ways.
+
+## Plugin Interface
+
+```typescript
+interface Plugin<TConfig = unknown> {
+  /** Unique name of the plugin */
+  name: string;
+
+  /** Called when the plugin is initialized */
+  init?: (context: PluginContext<TConfig>) => void | (() => void);
+
+  /** Called when the plugin is destroyed */
+  destroy?: () => void;
+
+  /** Called when the input value changes */
+  onValueChange?: (
+    value: string,
+    context: PluginContext<TConfig>
+  ) => string | Promise<string>;
+
+  /** Called on keydown events */
+  onKeyDown?: (event: KeyboardEvent, context: PluginContext<TConfig>) => void;
+
+  /** Render custom UI elements */
+  renderOverlay?: (context: PluginContext<TConfig>) => ReactNode;
+
+  /** Custom input renderer */
+  renderInput?: (props: InputRenderProps<TConfig>) => ReactNode;
+}
+```
+
+## Creating a Plugin
+
+Here's an example of a simple plugin that converts text to uppercase:
+
+```typescript
+import { createPluginFactory } from '@zentara/core';
+
+interface MyPluginState {
+  count: number;
+}
+
+const uppercasePlugin = createPluginFactory<MyPluginState>()({
+  initialState: {
+    count: 0,
+  },
+  createPlugin: (stateManager) => ({
+    name: 'uppercase',
+    onValueChange: (value) => value.toUpperCase(),
+  }),
+});
+```
+
+## Plugin Lifecycle
+
+### Initialization
+
+The `init` method is called when the plugin is mounted. It can optionally return a cleanup function:
+
+```typescript
+init: (context) => {
+  console.log('Plugin initialized');
+
+  // Optional cleanup function
+  return () => {
+    console.log('Cleanup from init');
+  };
+};
+```
+
+### Destruction
+
+The `destroy` method is called when the plugin is completely removed:
+
+```typescript
+destroy: () => {
+  console.log('Plugin destroyed');
+};
+```
+
+## Handling Input
+
+### Value Changes
+
+The `onValueChange` method can return a value synchronously or asynchronously:
+
+```typescript
+// Synchronous
+onValueChange: (value) => {
+  return value.toUpperCase();
+};
+
+// Asynchronous
+onValueChange: async (value, context) => {
+  const suggestion = await fetchSuggestion(value);
+  return suggestion;
+};
+```
+
+### Key Events
+
+The `onKeyDown` method handles keyboard events:
+
+```typescript
+onKeyDown: (event, context) => {
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    // Handle tab key
+  }
+};
+```
+
+## Custom UI
+
+### Overlay Rendering
+
+The `renderOverlay` method allows you to render UI elements above the input:
+
+```typescript
+renderOverlay: (context) => {
+  return <div className='my-overlay'>Count: {context.shared.count}</div>;
+};
+```
+
+### Custom Input Rendering
+
+The `renderInput` method allows complete customization of the input field. Note that only one plugin's `renderInput` will be used if multiple plugins provide it:
+
+```typescript
+renderInput: (props) => {
+  return (
+    <div className='custom-input-wrapper'>
+      <input {...props} />
+      <button onClick={() => props.setValue('')}>Clear</button>
+    </div>
+  );
+};
+```
+
+## Using Plugins
+
+```jsx
+import { ZentaraInput } from '@zentara/core';
+
+function MyComponent() {
+  return <ZentaraInput plugins={[uppercasePlugin()]} />;
+}
+```

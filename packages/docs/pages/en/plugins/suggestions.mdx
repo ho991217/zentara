@@ -1,0 +1,82 @@
+# Suggestions Plugin
+
+The suggestions plugin provides autocomplete functionality with customizable triggers and suggestions.
+
+## Installation
+
+```bash
+npm install @zentara/plugin-suggestions
+```
+
+## Configuration
+
+```typescript
+interface SuggestionsPluginConfig {
+  /** Maximum number of suggestions to show */
+  maxSuggestions?: number;
+
+  /** Array of suggestion rules */
+  rules: SuggestionRule[];
+}
+
+interface SuggestionRule<T = any> {
+  /** Character that triggers suggestions */
+  trigger: string;
+
+  /** Array of suggestion items */
+  items: T[];
+
+  /** Transform selected item to string */
+  transform: (item: T) => string;
+
+  /** Optional custom renderer for suggestions */
+  renderSuggestion?: (item: T, isSelected: boolean) => ReactNode;
+}
+```
+
+## Basic Usage
+
+```jsx
+import { ZentaraInput } from '@zentara/core';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+
+function MyComponent() {
+  return (
+    <ZentaraInput
+      plugins={[
+        suggestionsPlugin({
+          maxSuggestions: 5,
+          rules: [
+            {
+              trigger: '@',
+              items: ['user1', 'user2', 'user3'],
+              transform: (item) => `@${item} `,
+            },
+          ],
+        }),
+      ]}
+    />
+  );
+}
+```
+
+## Custom Rendering
+
+You can customize how suggestions are rendered:
+
+```jsx
+const userRule = {
+  trigger: '@',
+  items: [
+    { id: 1, name: 'John Doe', avatar: '/john.jpg' },
+    { id: 2, name: 'Jane Smith', avatar: '/jane.jpg' },
+  ],
+  transform: (user) => `@${user.name} `,
+  renderSuggestion: (user, isSelected) => (
+    <div className={isSelected ? 'selected' : ''}>
+      <img src={user.avatar} alt={user.name} />
+      <span>{user.name}</span>
+    </div>
+  ),
+};
+```

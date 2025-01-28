@@ -1,0 +1,80 @@
+# Quick Start
+
+## Basic Usage
+
+First, import and use the `ZentaraInput` component:
+
+```jsx copy
+import { ZentaraInput } from '@zentara/core';
+import { useState } from 'react';
+
+export default function App() {
+  const [value, setValue] = useState('');
+
+  return (
+    <ZentaraInput
+      value={value}
+      onChange={setValue}
+      placeholder='Type something...'
+    />
+  );
+}
+```
+
+## Adding Plugins
+
+Zentara becomes more powerful with plugins. Here's an example using the suggestions plugin:
+
+```jsx copy
+import { ZentaraInput } from '@zentara/core';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+
+export default function App() {
+  const [value, setValue] = useState('');
+
+  return (
+    <ZentaraInput
+      value={value}
+      onChange={setValue}
+      plugins={[
+        {
+          plugin: suggestionsPlugin,
+          config: {
+            rules: [
+              {
+                triggers: [':'],
+                suggestions: Object.keys(emojiMap),
+              },
+            ],
+          },
+        },
+      ]}
+    />
+  );
+}
+```
+
+## Styling
+
+You can customize the appearance using className or style props:
+
+```jsx
+<ZentaraInput
+  value={value}
+  onChange={setValue}
+  className='my-custom-input'
+  style={{ width: '100%', padding: '8px' }}
+/>
+```
+
+## Error State
+
+Use the `error` prop to display an error message:
+
+```jsx
+<ZentaraInput
+  value={value}
+  onChange={setValue}
+  error='This field is required'
+/>
+```

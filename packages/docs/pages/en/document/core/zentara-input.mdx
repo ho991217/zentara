@@ -1,0 +1,85 @@
+# ZentaraInput
+
+The main component of Zentara. It provides a customizable input field that can be enhanced with plugins.
+
+## Props
+
+```typescript
+interface ZentaraInputProps {
+  /** Initial value of the input */
+  value?: string;
+
+  /** Callback when value changes */
+  onChange?: (value: string) => void;
+
+  /** Array of plugins to enhance the input */
+  plugins?: Plugin[];
+
+  /** CSS class name */
+  className?: string;
+
+  /** Inline styles */
+  style?: CSSProperties;
+
+  /** Placeholder text */
+  placeholder?: string;
+
+  /** Error message to display below the input */
+  error?: string;
+}
+```
+
+## Basic Usage
+
+```jsx
+import { ZentaraInput } from '@zentara/core';
+
+function MyComponent() {
+  const [value, setValue] = useState('');
+
+  return (
+    <ZentaraInput
+      value={value}
+      onChange={setValue}
+      placeholder='Type something...'
+    />
+  );
+}
+```
+
+## With Plugins
+
+Note: If multiple plugins provide a custom input renderer (`renderInput`), only the first one will be used and a warning will be logged to the console.
+
+```jsx
+import { ZentaraInput } from '@zentara/core';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+
+function MyComponent() {
+  return (
+    <ZentaraInput
+      plugins={[
+        suggestionsPlugin({
+          rules: [
+            {
+              trigger: '@',
+              items: ['user1', 'user2', 'user3'],
+              transform: (item) => `@${item} `,
+            },
+          ],
+        }),
+      ]}
+    />
+  );
+}
+```
+
+## Error State
+
+```jsx
+<ZentaraInput
+  value={value}
+  onChange={setValue}
+  error='This field is required'
+/>
+```

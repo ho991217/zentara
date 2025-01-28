@@ -1,0 +1,82 @@
+# Suggestions 플러그인
+
+Suggestions 플러그인은 커스터마이징 가능한 트리거와 제안 기능을 통해 자동완성 기능을 제공합니다.
+
+## 설치
+
+```bash
+npm install @zentara/plugin-suggestions
+```
+
+## 설정
+
+```typescript
+interface SuggestionsPluginConfig {
+  /** 표시할 최대 제안 개수 */
+  maxSuggestions?: number;
+
+  /** 제안 규칙 배열 */
+  rules: SuggestionRule[];
+}
+
+interface SuggestionRule<T = any> {
+  /** 제안을 트리거하는 문자 */
+  trigger: string;
+
+  /** 제안 항목 배열 */
+  items: T[];
+
+  /** 선택된 항목을 문자열로 변환 */
+  transform: (item: T) => string;
+
+  /** 선택적 커스텀 제안 렌더러 */
+  renderSuggestion?: (item: T, isSelected: boolean) => ReactNode;
+}
+```
+
+## 기본 사용법
+
+```jsx
+import { ZentaraInput } from '@zentara/core';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+
+function MyComponent() {
+  return (
+    <ZentaraInput
+      plugins={[
+        suggestionsPlugin({
+          maxSuggestions: 5,
+          rules: [
+            {
+              trigger: '@',
+              items: ['user1', 'user2', 'user3'],
+              transform: (item) => `@${item} `,
+            },
+          ],
+        }),
+      ]}
+    />
+  );
+}
+```
+
+## 커스텀 렌더링
+
+제안이 표시되는 방식을 커스터마이징할 수 있습니다:
+
+```jsx
+const userRule = {
+  trigger: '@',
+  items: [
+    { id: 1, name: '홍길동', avatar: '/hong.jpg' },
+    { id: 2, name: '김철수', avatar: '/kim.jpg' },
+  ],
+  transform: (user) => `@${user.name} `,
+  renderSuggestion: (user, isSelected) => (
+    <div className={isSelected ? 'selected' : ''}>
+      <img src={user.avatar} alt={user.name} />
+      <span>{user.name}</span>
+    </div>
+  ),
+};
+```

@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+# GitHub Actions 봇에게 필요한 권한을 부여
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:

@@ -1,6 +1,23 @@
 {
   "name": "@zentara/plugin-suggestions",
   "version": "0.1.0",
+  "description": "Suggestions plugin for Zentara input component",
+  "keywords": [
+    "zentara",
+    "plugin",
+    "suggestions",
+    "autocomplete"
+  ],
+  "author": {
+    "name": "HoYeon Lee",
+    "email": "ho991217@kakao.com",
+    "url": "https://github.com/ho991217"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ho991217/zentara.git",
+    "directory": "packages/plugins/suggestions"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -15,21 +32,28 @@
   "scripts": {
     "build": "tsup src/index.tsx --format esm,cjs --dts --external react --inject-style",
     "dev": "tsup src/index.tsx --format esm,cjs --watch --dts --external react --inject-style",
-    "lint": "eslint \"src/**/*.ts*\"",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "lint": "biome check src/",
+    "format": "biome format --write src/",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@zentara/core": "^0.1.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "eslint": "^8.0.0",
+    "@biomejs/biome": "1.5.3",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
     "react": "^18.2.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0"
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.0"
   },
   "peerDependencies": {
     "react": "^18.2.0"
   },
-  "dependencies": {
-    "@zentara/types": "workspace:*"
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "scope": "@zentara"
   }
 }

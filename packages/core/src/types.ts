@@ -1,5 +1,6 @@
 import type { KeyboardEvent, ReactNode, RefObject, ChangeEvent } from 'react';
 
+/** Context object passed to plugin methods */
 export interface PluginContext<TConfig = unknown> {
   /** The current input value */
   value: string;
@@ -18,6 +19,7 @@ export interface PluginContext<TConfig = unknown> {
   shared: Record<string, unknown>;
 }
 
+/** Props passed to custom input renderer */
 export interface InputRenderProps<TConfig = unknown>
   extends PluginContext<TConfig> {
   /** The default input event handler */
@@ -32,28 +34,29 @@ export interface InputRenderProps<TConfig = unknown>
   placeholder?: string;
 }
 
+/** Plugin interface for extending ZentaraInput functionality */
 export interface Plugin<TConfig = unknown> {
+  /** Unique name of the plugin */
   name: string;
-  /** The plugin initialization function (registering event listeners, setting initial state, etc.) */
+  /** The plugin initialization function */
   init?: (context: PluginContext<TConfig>) => void;
-  /** The default input event handler */
+  /** Called when the input value changes */
   onValueChange?: (
     value: string,
     context: PluginContext<TConfig>
   ) => string | Promise<string>;
-  /** The default keydown event handler */
+  /** Called on keydown events */
   onKeyDown?: (event: KeyboardEvent, context: PluginContext<TConfig>) => void;
-  /** The overlay rendering function (autocomplete, tooltip, etc.) */
+  /** Renders overlay content (e.g., suggestions) */
   renderOverlay?: (context: PluginContext<TConfig>) => ReactNode;
-  /** The input rendering function (syntax highlighting, markdown, etc.) */
+  /** Renders custom input component */
   renderInput?: (props: InputRenderProps<TConfig>) => ReactNode;
 }
 
+/** Plugin with configuration */
 export interface PluginWithConfig<TConfig = unknown> {
+  /** The plugin implementation */
   plugin: Plugin<TConfig>;
+  /** Plugin configuration */
   config?: TConfig;
-}
-
-export interface ZentaraPluginConfig {
-  plugins: PluginWithConfig[];
 }

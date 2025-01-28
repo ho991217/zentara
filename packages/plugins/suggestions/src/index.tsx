@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Plugin } from '@zentara/types';
+import type { Plugin } from '@zentara/core';
 import './suggestions.css';
 
 /** Interface for defining suggestion rules */

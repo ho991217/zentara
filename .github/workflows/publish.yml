@@ -1,0 +1,52 @@
+name: Publish to NPM
+
+on:
+  push:
+    tags:
+      - '@zentara/core@*'
+      - '@zentara/plugin-suggestions@*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Extract Package Info
+        id: package
+        run: |
+          TAG=${{ github.ref_name }}
+          PACKAGE_NAME=$(echo $TAG | cut -d@ -f1-2)
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Build and Publish Core
+        if: steps.package.outputs.package_name == '@zentara/core'
+        run: |
+          cd packages/core
+          pnpm build
+          pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Build and Publish Suggestions Plugin
+        if: steps.package.outputs.package_name == '@zentara/plugin-suggestions'
+        run: |
+          cd packages/plugins/suggestions
+          pnpm build
+          pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

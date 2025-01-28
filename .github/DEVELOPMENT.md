@@ -2,83 +2,80 @@
 
 ## Release Process
 
-To release a new version of a package, use the following command:
+We use [Changesets](https://github.com/changesets/changesets) to manage versions and publish packages.
+
+### Adding a Changeset
+
+When you make changes that need to be released, add a changeset:
 
 ```bash
-pnpm release <package-directory> <version>
+pnpm changeset
 ```
 
-### Parameters
+This will prompt you to:
 
-- `package-directory`: The directory name of the package under `packages/`
-  - `core` for `@zentara/core`
-  - `plugins/suggestions` for `@zentara/plugin-suggestions`
-  - etc.
-- `version`: Can be one of:
-  - `patch` for bug fixes (0.0.x)
-  - `minor` for new features (0.x.0)
-  - `major` for breaking changes (x.0.0)
-  - A specific version number (e.g., "1.0.0")
+1. Select the packages you've changed
+2. Choose the type of version change (major/minor/patch)
+3. Provide a description of the changes
 
-### Examples
+The description you provide will be used in the package's changelog and the release notes.
 
-```bash
-# Release a patch version for core package
-pnpm release core patch
+### Example Changeset Descriptions
 
-# Release a minor version for suggestions plugin
-pnpm release plugins/suggestions minor
+```
+# For a new feature
+Added new `renderSuggestion` prop to customize suggestion items
 
-# Release a specific version
-pnpm release core 1.0.0
+# For a bug fix
+Fixed keyboard navigation in suggestion list
+
+# For documentation
+Updated installation guide with npm/pnpm examples
+
+# For breaking changes
+Removed deprecated `autoComplete` prop. Use `suggestions` instead.
 ```
 
-### What happens when you release?
+### Release Process
 
-1. The version in the package's `package.json` is updated
-2. A git commit is created with the version change
-3. A git tag is created in the format `@zentara/package-name@version`
-4. The changes are pushed to GitHub
-5. GitHub Actions automatically:
-   - Builds the package
-   - Publishes it to npm registry
-   - Publishes it to GitHub Packages registry
-   - Creates a GitHub Release with:
-     - Changes since the last release (commits starting with feat:, fix:, docs:, refactor:)
-     - List of merged pull requests
+1. Create a PR with your changes and the changeset
+2. When the PR is merged to main:
+   - If there are changesets, a "Version Packages" PR will be created
+   - This PR updates package versions and changelogs
+3. Merging the "Version Packages" PR will:
+   - Update versions and changelogs
+   - Create git tags
+   - Publish packages to npm
+   - Create GitHub releases
 
 ### Prerequisites
 
 1. Make sure you have npm access to the `@zentara` organization
 2. Ensure you're logged in to npm (`npm login`)
-3. Have the necessary GitHub permissions to push tags and packages
+3. Have the necessary GitHub permissions
 
 ### Package Installation
 
-The packages are available from both npm and GitHub Packages registries:
-
 ```bash
-# From npm registry (default)
+# Install from npm registry
 npm install @zentara/core
+# or
 pnpm add @zentara/core
-
-# From GitHub Packages registry
-npm install @zentara/core --registry=https://npm.pkg.github.com
-pnpm add @zentara/core --registry=https://npm.pkg.github.com
 ```
 
 ### Notes
 
-- Release packages in dependency order (e.g., release `core` before plugins)
-- Always test your changes before releasing
+- Always include a changeset when making changes that should be released
 - Follow semantic versioning guidelines:
   - MAJOR: Breaking changes
   - MINOR: New features (backwards compatible)
   - PATCH: Bug fixes (backwards compatible)
+- Test your changes before creating a changeset
+- Write clear and descriptive changeset messages
 
 ### Commit Message Format
 
-For better release notes, follow these commit message formats:
+For better organization, follow these commit message formats:
 
 - `feat: description` - New feature
 - `fix: description` - Bug fix
@@ -87,4 +84,4 @@ For better release notes, follow these commit message formats:
 - `test: description` - Adding or updating tests
 - `chore: description` - Maintenance tasks
 
-Pull request titles should also follow this format to be included in release notes.
+Pull request titles should also follow this format.

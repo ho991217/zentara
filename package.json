@@ -14,10 +14,11 @@
     "format": "biome format --write .",
     "lint:biome": "biome check .",
     "lint:fix": "biome check --apply .",
-    "release": "./scripts/publish.sh"
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
+    "@changesets/cli": "^2.27.12",
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",

@@ -27,8 +27,7 @@ pnpm add @zentara/core
 
 ```tsx
 import { ZentaraInput } from '@zentara/core';
-import { emojiPlugin } from '@zentara/plugin-emoji';
-import { templatePlugin } from '@zentara/plugin-template';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
 
 function App() {
   const [value, setValue] = useState('');
@@ -37,38 +36,107 @@ function App() {
     <ZentaraInput
       value={value}
       onChange={setValue}
-      plugins={{
-        plugins: [emojiPlugin, templatePlugin],
-        pluginConfigs: {
-          emoji: {
-            triggerChar: ':',
-            maxSuggestions: 5,
-          },
-          'template-autocomplete': {
-            variables: ['name', 'email', 'age'],
-            triggerChar: '{{.',
+      plugins={[
+        {
+          plugin: suggestionsPlugin,
+          config: {
+            rules: [
+              {
+                // 이모지 제안
+                triggers: [':'],
+                suggestions: ['grinning', 'heart', 'thumbsup', 'party'],
+                transform: (suggestion) => `${emojiMap[suggestion]} `,
+                renderSuggestion: (suggestion) => (
+                  <>
+                    <span className='zentara-suggestion-primary'>
+                      {emojiMap[suggestion]}
+                    </span>
+                    <span className='zentara-suggestion-secondary'>
+                      {`:${suggestion}:`}
+                    </span>
+                  </>
+                ),
+              },
+              {
+                // 템플릿 변수 제안
+                triggers: ['{{.'],
+                suggestions: ['name', 'email', 'age'],
+                transform: (suggestion) => `{{.${suggestion}}}`,
+                renderSuggestion: (suggestion) => (
+                  <code className='zentara-suggestion-code'>
+                    {`{{.${suggestion}}}`}
+                  </code>
+                ),
+              },
+              {
+                // 이슈 참조 제안
+                triggers: [/#\d*$/, /[Ii]ssue-\d*$/],
+                suggestions: ['123: 버그 수정', '456: 기능 요청'],
+                transform: (suggestion) => {
+                  const id = suggestion.split(':')[0];
+                  return `#${id} `;
+                },
+                renderSuggestion: (suggestion) => {
+                  const [id, title] = suggestion.split(':');
+                  return (
+                    <>
+                      <span className='zentara-suggestion-primary'>#{id}</span>
+                      <span className='zentara-suggestion-secondary'>
+                        {title}
+                      </span>
+                    </>
+                  );
+                },
+              },
+            ],
             maxSuggestions: 5,
           },
         },
-      }}
+      ]}
     />
   );
 }
+
+const emojiMap = {
+  grinning: '😀',
+  heart: '❤️',
+  thumbsup: '👍',
+  party: '🎉',
+};
 ```
 
 ## 플러그인
 
-### 이모지 플러그인 (@zentara/plugin-emoji)
+### 제안 플러그인 (@zentara/plugin-suggestions)
 
-- 이모지 검색 및 선택 기능
-- 키보드 네비게이션 지원
-- 커스터마이징 가능한 트리거 문자
+다양한 용도로 설정할 수 있는 유연한 제안 플러그인:
 
-### 템플릿 플러그인 (@zentara/plugin-template)
+- 다중 트리거 패턴 (문자열 또는 정규식)
+- 커스텀 제안 목록
+- 선택된 제안의 변환 방식 커스터마이징
+- 제안 항목의 렌더링 커스터마이징
 
-- 템플릿 변수 자동완성
-- 키보드 네비게이션 지원
-- 커스터마이징 가능한 변수 목록
+설정 옵션:
+
+```ts
+interface SuggestionRule {
+  // 제안 팝업을 트리거하는 문자열 또는 정규식 패턴
+  triggers: (string | RegExp)[];
+  // 검색할 제안 목록
+  suggestions: string[];
+  // 선택된 제안을 최종 텍스트로 변환
+  transform: (suggestion: string) => string;
+  // 선택적으로 제안 항목의 렌더링을 커스터마이징
+  renderSuggestion?: (suggestion: string) => JSX.Element;
+}
+
+interface SuggestionsPluginConfig {
+  // 제안 규칙 목록
+  rules: SuggestionRule[];
+  // 최대 제안 개수
+  maxSuggestions?: number;
+}
+```
 
 ## 개발
 
@@ -96,8 +164,7 @@ packages/
   ├── core/          # 메인 컴포넌트
   ├── types/         # 타입 정의
   ├── plugins/       # 플러그인
-  │   ├── emoji/     # 이모지 플러그인
-  │   └── template/  # 템플릿 플러그인
+  │   └── suggestions/  # 제안 플러그인 (이모지 & 템플릿)
   └── example/       # 예제 프로젝트
 ```
 

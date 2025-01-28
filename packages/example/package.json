@@ -1,18 +1,16 @@
 {
   "name": "@zentara/example",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "lint": "biome check src/",
-    "format": "biome format --write src/",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "build": "tsc && vite build",
+    "lint": "biome lint .",
+    "format": "biome format . --write"
   },
   "dependencies": {
     "@zentara/core": "workspace:*",
-    "@zentara/plugin-emoji": "workspace:*",
-    "@zentara/plugin-template": "workspace:*",
+    "@zentara/plugin-suggestions": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

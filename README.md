@@ -27,8 +27,7 @@ pnpm add @zentara/core
 
 ```tsx
 import { ZentaraInput } from '@zentara/core';
-import { emojiPlugin } from '@zentara/plugin-emoji';
-import { templatePlugin } from '@zentara/plugin-template';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
 
 function App() {
   const [value, setValue] = useState('');
@@ -37,38 +36,107 @@ function App() {
     <ZentaraInput
       value={value}
       onChange={setValue}
-      plugins={{
-        plugins: [emojiPlugin, templatePlugin],
-        pluginConfigs: {
-          emoji: {
-            triggerChar: ':',
-            maxSuggestions: 5,
-          },
-          'template-autocomplete': {
-            variables: ['name', 'email', 'age'],
-            triggerChar: '{{.',
+      plugins={[
+        {
+          plugin: suggestionsPlugin,
+          config: {
+            rules: [
+              {
+                // Emoji suggestions
+                triggers: [':'],
+                suggestions: ['grinning', 'heart', 'thumbsup', 'party'],
+                transform: (suggestion) => `${emojiMap[suggestion]} `,
+                renderSuggestion: (suggestion) => (
+                  <>
+                    <span className='zentara-suggestion-primary'>
+                      {emojiMap[suggestion]}
+                    </span>
+                    <span className='zentara-suggestion-secondary'>
+                      {`:${suggestion}:`}
+                    </span>
+                  </>
+                ),
+              },
+              {
+                // Template variable suggestions
+                triggers: ['{{.'],
+                suggestions: ['name', 'email', 'age'],
+                transform: (suggestion) => `{{.${suggestion}}}`,
+                renderSuggestion: (suggestion) => (
+                  <code className='zentara-suggestion-code'>
+                    {`{{.${suggestion}}}`}
+                  </code>
+                ),
+              },
+              {
+                // Issue reference suggestions
+                triggers: [/#\d*$/, /[Ii]ssue-\d*$/],
+                suggestions: ['123: Bug fix', '456: Feature request'],
+                transform: (suggestion) => {
+                  const id = suggestion.split(':')[0];
+                  return `#${id} `;
+                },
+                renderSuggestion: (suggestion) => {
+                  const [id, title] = suggestion.split(':');
+                  return (
+                    <>
+                      <span className='zentara-suggestion-primary'>#{id}</span>
+                      <span className='zentara-suggestion-secondary'>
+                        {title}
+                      </span>
+                    </>
+                  );
+                },
+              },
+            ],
             maxSuggestions: 5,
           },
         },
-      }}
+      ]}
     />
   );
 }
+
+const emojiMap = {
+  grinning: '😀',
+  heart: '❤️',
+  thumbsup: '👍',
+  party: '🎉',
+};
 ```
 
 ## Plugins
 
-### Emoji Plugin (@zentara/plugin-emoji)
+### Suggestions Plugin (@zentara/plugin-suggestions)
 
-- Emoji search and selection
-- Keyboard navigation support
-- Customizable trigger character
+A flexible suggestion plugin that can be configured for various use cases:
 
-### Template Plugin (@zentara/plugin-template)
+- Multiple trigger patterns (string or RegExp)
+- Custom suggestion lists
+- Customizable transformation of selected suggestions
+- Custom rendering of suggestion items
 
-- Template variable autocompletion
-- Keyboard navigation support
-- Customizable variable list
+Configuration options:
+
+```ts
+interface SuggestionRule {
+  // Strings or RegExp patterns that trigger the suggestion popup
+  triggers: (string | RegExp)[];
+  // List of suggestions to search through
+  suggestions: string[];
+  // Transform the selected suggestion into the final text
+  transform: (suggestion: string) => string;
+  // Optional custom rendering of suggestion items
+  renderSuggestion?: (suggestion: string) => JSX.Element;
+}
+
+interface SuggestionsPluginConfig {
+  // List of suggestion rules
+  rules: SuggestionRule[];
+  // Maximum number of suggestions to show
+  maxSuggestions?: number;
+}
+```
 
 ## Development
 
@@ -96,8 +164,7 @@ packages/
   ├── core/          # Main component
   ├── types/         # Type definitions
   ├── plugins/       # Plugins
-  │   ├── emoji/     # Emoji plugin
-  │   └── template/  # Template plugin
+  │   └── suggestions/  # Suggestions plugin (emoji & template)
   └── example/       # Example project
 ```
 

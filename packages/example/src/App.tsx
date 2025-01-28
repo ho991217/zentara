@@ -1,106 +1,132 @@
 import { useState } from 'react';
 import { ZentaraInput } from '@zentara/core';
-import { emojiPlugin } from '@zentara/plugin-emoji';
-import { templatePlugin } from '@zentara/plugin-template';
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+import './App.css';
 
-export default function App() {
-  const [value1, setValue1] = useState('');
-  const [value2, setValue2] = useState('');
-  const [value3, setValue3] = useState('');
+const emojiMap = {
+  grinning: '😀',
+  heart: '❤️',
+  thumbsup: '👍',
+  party: '🎉',
+  smile: '😊',
+  laugh: '😂',
+  wink: '😉',
+  cool: '😎',
+  love: '😍',
+  star: '⭐',
+} as const;
+
+const variables = [
+  'name',
+  'email',
+  'age',
+  'address',
+  'phone',
+  'company',
+  'position',
+  'department',
+] as const;
+
+const issues = [
+  { id: '123', title: '버그 수정: 입력 창 포커스 문제' },
+  { id: '456', title: '기능 추가: 다크 모드 지원' },
+  { id: '789', title: '문서 업데이트: API 가이드' },
+  { id: '101', title: '성능 개선: 렌더링 최적화' },
+] as const;
+
+function App() {
+  const [value, setValue] = useState('');
 
   return (
-    <div className='min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8'>
-      <div className='max-w-3xl mx-auto'>
-        <div className='bg-white shadow-sm rounded-lg p-6 space-y-8'>
-          <div>
-            <h1 className='text-3xl font-bold text-gray-900 mb-8'>
-              Zentara Input Examples
-            </h1>
-
-            <div className='space-y-6'>
-              {/* 기본 사용 예시 */}
-              <div>
-                <h2 className='text-lg font-semibold text-gray-700 mb-2'>
-                  Basic Usage
-                </h2>
-                <ZentaraInput
-                  value={value1}
-                  onChange={setValue1}
-                  placeholder='Type something...'
-                  className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                />
-                <p className='mt-2 text-sm text-gray-500'>Value: {value1}</p>
-              </div>
-
-              {/* 이모지 플러그인 예시 */}
-              <div>
-                <h2 className='text-lg font-semibold text-gray-700 mb-2'>
-                  With Emoji Plugin
-                </h2>
-                <p className='text-sm text-gray-500 mb-2'>
-                  Try typing ":" followed by text to search for emojis
-                </p>
-                <ZentaraInput
-                  value={value2}
-                  onChange={setValue2}
-                  placeholder="Try typing ':happy'"
-                  className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                  plugins={{
-                    plugins: [emojiPlugin],
-                    pluginConfigs: {
-                      emoji: {
-                        triggerChar: ':',
-                        maxSuggestions: 5,
-                      },
+    <div className='container'>
+      <h1>Zentara Example</h1>
+      <div className='input-container'>
+        <h2>Try typing:</h2>
+        <ul>
+          <li>
+            <code>:grin</code> for emoji suggestions
+          </li>
+          <li>
+            <code>{'{{.'}</code> for template variable suggestions
+          </li>
+          <li>
+            <code>#123</code> or <code>issue-456</code> for issue references
+          </li>
+        </ul>
+        <ZentaraInput
+          value={value}
+          onChange={setValue}
+          plugins={[
+            {
+              plugin: suggestionsPlugin,
+              config: {
+                rules: [
+                  {
+                    // Emoji suggestions
+                    triggers: [':'],
+                    suggestions: Object.keys(emojiMap),
+                    transform: (suggestion: string) => {
+                      const key = suggestion as keyof typeof emojiMap;
+                      return `${emojiMap[key]} `;
                     },
-                  }}
-                />
-                <p className='mt-2 text-sm text-gray-500'>Value: {value2}</p>
-              </div>
-
-              {/* 템플릿 플러그인 예시 */}
-              <div>
-                <h2 className='text-lg font-semibold text-gray-700 mb-2'>
-                  With Template Plugin
-                </h2>
-                <p className='text-sm text-gray-500 mb-2'>
-                  {`Try typing "{{." to access variables. Available variables: value1, value2.`}
-                </p>
-                <ZentaraInput
-                  value={value3}
-                  onChange={setValue3}
-                  placeholder="Try typing '{{.'"
-                  className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                  plugins={{
-                    plugins: [templatePlugin],
-                    pluginConfigs: {
-                      'template-autocomplete': {
-                        variables: ['name', 'age', 'email'],
-                        triggerChar: '{{.',
-                        maxSuggestions: 5,
-                      },
+                    renderSuggestion: (suggestion: string) => {
+                      const key = suggestion as keyof typeof emojiMap;
+                      return (
+                        <>
+                          <span className='zentara-suggestion-primary'>
+                            {emojiMap[key]}
+                          </span>
+                          <span className='zentara-suggestion-secondary'>
+                            {`:${suggestion}:`}
+                          </span>
+                        </>
+                      );
                     },
-                  }}
-                />
-                <p className='mt-2 text-sm text-gray-500'>Value: {value3}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 문서 링크 */}
-          <div className='pt-6 border-t border-gray-200'>
-            <p className='text-sm text-gray-500'>
-              View more examples and documentation on{' '}
-              <a
-                href='https://github.com/yourusername/zentara'
-                className='text-blue-500 hover:text-blue-600'
-              >
-                GitHub
-              </a>
-            </p>
-          </div>
-        </div>
+                  },
+                  {
+                    // Template variable suggestions
+                    triggers: ['{', '{{', '{{.'],
+                    suggestions: [...variables],
+                    transform: (suggestion: string) => `{{.${suggestion}}}`,
+                    renderSuggestion: (suggestion: string) => (
+                      <code className='zentara-suggestion-code'>
+                        {`{{.${suggestion}}}`}
+                      </code>
+                    ),
+                  },
+                  {
+                    // Issue reference suggestions
+                    triggers: [/#\d*$/, /[Ii]ssue-\d*$/],
+                    suggestions: issues.map(
+                      (issue) => `${issue.id}: ${issue.title}`
+                    ),
+                    transform: (suggestion: string) => {
+                      const id = suggestion.split(':')[0];
+                      return `#${id} `;
+                    },
+                    renderSuggestion: (suggestion: string) => {
+                      const [id, title] = suggestion.split(':');
+                      return (
+                        <>
+                          <span className='zentara-suggestion-primary'>
+                            #{id}
+                          </span>
+                          <span className='zentara-suggestion-secondary'>
+                            {title}
+                          </span>
+                        </>
+                      );
+                    },
+                  },
+                ],
+                maxSuggestions: 5,
+              },
+            },
+          ]}
+        />
       </div>
     </div>
   );
 }
+
+export default App;

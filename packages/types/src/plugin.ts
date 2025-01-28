@@ -1,62 +1,59 @@
 import type { KeyboardEvent, ReactNode, RefObject, ChangeEvent } from 'react';
 
-export interface SharedPluginState {
-  [key: string]: unknown;
-}
-
-export interface ZentaraPluginContext<TConfig = unknown> {
+export interface PluginContext<TConfig = unknown> {
+  /** The current input value */
   value: string;
+  /** A function to set the input value */
   setValue: (value: string) => void;
-  // 플러그인 간 공유 상태
-  shared: SharedPluginState;
-  // 플러그인별 메타데이터
-  meta?: {
-    config?: TConfig;
-    cursorPosition?: number;
-    [key: string]: unknown;
+  /** The cursor position */
+  cursor: {
+    start: number;
+    end: number;
   };
+  /** The input element ref */
+  inputRef: RefObject<HTMLInputElement>;
+  /** The plugin configuration */
+  config?: TConfig;
+  /** Shared state between plugins */
+  shared: Record<string, unknown>;
 }
 
-export interface ZentaraPlugin<
-  TName extends string = string,
-  TConfig = unknown
-> {
-  name: TName;
+export interface InputRenderProps<TConfig = unknown>
+  extends PluginContext<TConfig> {
+  /** The default input event handler */
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  /** The default keydown event handler */
+  onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
+  /** The default select event handler */
+  onSelect: () => void;
+  /** The styling class name */
+  className?: string;
+  /** The placeholder text */
+  placeholder?: string;
+}
 
-  // 플러그인 초기화
-  init?: (context: ZentaraPluginContext<TConfig>) => void;
-
-  // 입력값 변경 시 호출
+export interface Plugin<TConfig = unknown> {
+  name: string;
+  /** The plugin initialization function (registering event listeners, setting initial state, etc.) */
+  init?: (context: PluginContext<TConfig>) => void;
+  /** The default input event handler */
   onValueChange?: (
     value: string,
-    context: ZentaraPluginContext<TConfig>
+    context: PluginContext<TConfig>
   ) => string | Promise<string>;
+  /** The default keydown event handler */
+  onKeyDown?: (event: KeyboardEvent, context: PluginContext<TConfig>) => void;
+  /** The overlay rendering function (autocomplete, tooltip, etc.) */
+  renderOverlay?: (context: PluginContext<TConfig>) => ReactNode;
+  /** The input rendering function (syntax highlighting, markdown, etc.) */
+  renderInput?: (props: InputRenderProps<TConfig>) => ReactNode;
+}
 
-  // 키 입력 시 호출
-  onKeyDown?: (
-    event: KeyboardEvent,
-    context: ZentaraPluginContext<TConfig>
-  ) => void;
-
-  // 커스텀 렌더링 (자동완성 드롭다운 등)
-  renderSuggestions?: (context: ZentaraPluginContext<TConfig>) => ReactNode;
-
-  // 입력값 표시 방식 커스터마이징 (구문 강조 등)
-  renderDisplay?: (
-    value: string,
-    context: ZentaraPluginContext<TConfig> & {
-      inputRef: RefObject<HTMLInputElement>;
-      onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-      onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
-      onSelect: () => void;
-      placeholder?: string;
-    }
-  ) => ReactNode;
-
-  validateConfig?: (config: TConfig) => boolean;
+export interface PluginWithConfig<TConfig = unknown> {
+  plugin: Plugin<TConfig>;
+  config?: TConfig;
 }
 
 export interface ZentaraPluginConfig {
-  plugins: ZentaraPlugin[];
-  pluginConfigs?: Record<string, unknown>;
+  plugins: PluginWithConfig[];
 }

@@ -6,49 +6,49 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from 'react';
-import type {
-  ZentaraPluginConfig,
-  ZentaraPluginContext,
-  SharedPluginState,
-  ZentaraPlugin,
-} from '@zentara/types';
+import type { Plugin, PluginContext, PluginWithConfig } from '@zentara/types';
 import './ZentaraInput.css';
 
-export interface ZentaraInputProps {
+export interface ZentaraInputProps<TConfig = unknown> {
   value?: string;
   onChange?: (value: string) => void;
-  plugins?: ZentaraPluginConfig;
+  plugins?: PluginWithConfig<TConfig>[];
   className?: string;
   placeholder?: string;
   error?: string;
 }
 
-export const ZentaraInput = ({
+export const ZentaraInput = <TConfig = unknown,>({
   value: externalValue,
   onChange,
   plugins,
   className,
   placeholder,
   error,
-}: ZentaraInputProps) => {
+}: ZentaraInputProps<TConfig>) => {
   const [internalValue, setInternalValue] = useState(externalValue || '');
-  const sharedState = useRef<SharedPluginState>({});
+  const sharedState = useRef<Record<string, unknown>>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
   const createContext = useCallback(
-    (value: string, plugin?: ZentaraPlugin): ZentaraPluginContext => ({
+    <TConfig,>(
+      value: string,
+      pluginWithConfig?: PluginWithConfig<TConfig>
+    ): PluginContext<TConfig> => ({
       value,
       setValue: (newValue) => {
         setInternalValue(newValue);
         onChange?.(newValue);
       },
-      shared: sharedState.current,
-      meta: {
-        cursorPosition: inputRef.current?.selectionStart || value.length,
-        config: plugin ? plugins?.pluginConfigs?.[plugin.name] : undefined,
+      cursor: {
+        start: inputRef.current?.selectionStart ?? value.length,
+        end: inputRef.current?.selectionEnd ?? value.length,
       },
+      inputRef,
+      config: pluginWithConfig?.config,
+      shared: sharedState.current,
     }),
-    [onChange, plugins?.pluginConfigs]
+    [onChange]
   );
 
   useEffect(() => {
@@ -58,26 +58,28 @@ export const ZentaraInput = ({
   }, [externalValue]);
 
   useEffect(() => {
-    if (plugins?.plugins) {
-      for (const plugin of plugins.plugins) {
-        if (plugin.init) {
-          plugin.init(createContext(internalValue, plugin));
+    if (plugins) {
+      for (const pluginWithConfig of plugins) {
+        if (pluginWithConfig.plugin.init) {
+          pluginWithConfig.plugin.init(
+            createContext(internalValue, pluginWithConfig)
+          );
         }
       }
     }
-  }, [plugins?.plugins, createContext, internalValue]);
+  }, [plugins, createContext, internalValue]);
 
   const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInternalValue(newValue);
 
-    if (plugins?.plugins) {
+    if (plugins) {
       let processedValue = newValue;
-      for (const plugin of plugins.plugins) {
-        if (plugin.onValueChange) {
-          processedValue = await plugin.onValueChange(
+      for (const pluginWithConfig of plugins) {
+        if (pluginWithConfig.plugin.onValueChange) {
+          processedValue = await pluginWithConfig.plugin.onValueChange(
             processedValue,
-            createContext(processedValue, plugin)
+            createContext(processedValue, pluginWithConfig)
           );
         }
       }
@@ -92,10 +94,13 @@ export const ZentaraInput = ({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (plugins?.plugins) {
-      for (const plugin of plugins.plugins) {
-        if (plugin.onKeyDown) {
-          plugin.onKeyDown(e, createContext(internalValue, plugin));
+    if (plugins) {
+      for (const pluginWithConfig of plugins) {
+        if (pluginWithConfig.plugin.onKeyDown) {
+          pluginWithConfig.plugin.onKeyDown(
+            e,
+            createContext(internalValue, pluginWithConfig)
+          );
         }
       }
     }
@@ -105,27 +110,43 @@ export const ZentaraInput = ({
     setInternalValue((prev) => prev);
   };
 
+  const customInputRenderer = plugins?.find((p) => p.plugin.renderInput)?.plugin
+    .renderInput;
+
   return (
     <div className='zentara-input-container'>
       <div className='zentara-input-wrapper'>
-        <input
-          ref={inputRef}
-          type='text'
-          value={internalValue}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onSelect={handleSelect}
-          className={`zentara-input ${className || ''}`}
-          placeholder={placeholder}
-        />
+        {customInputRenderer ? (
+          customInputRenderer({
+            ...createContext(internalValue),
+            onChange: handleChange,
+            onKeyDown: handleKeyDown,
+            onSelect: handleSelect,
+            className: `zentara-input ${className || ''}`,
+            placeholder,
+          })
+        ) : (
+          <input
+            ref={inputRef}
+            type='text'
+            value={internalValue}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onSelect={handleSelect}
+            className={`zentara-input ${className || ''}`}
+            placeholder={placeholder}
+          />
+        )}
       </div>
       {error && <span className='zentara-input-error'>{error}</span>}
-      <div className='zentara-plugin-container'>
-        {plugins?.plugins.map(
-          (plugin, index) =>
-            plugin.renderSuggestions && (
-              <div key={`${plugin.name}-${index}`}>
-                {plugin.renderSuggestions(createContext(internalValue, plugin))}
+      <div className='zentara-plugin-overlay'>
+        {plugins?.map(
+          (pluginWithConfig, index) =>
+            pluginWithConfig.plugin.renderOverlay && (
+              <div key={`${pluginWithConfig.plugin.name}-${index}`}>
+                {pluginWithConfig.plugin.renderOverlay(
+                  createContext(internalValue, pluginWithConfig)
+                )}
               </div>
             )
         )}

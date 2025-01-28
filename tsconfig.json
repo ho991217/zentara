@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@zentara/*": ["./packages/*/src"]
+    },
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "nodenext",
+    "module": "nodenext"
+  },
+  "include": ["packages/**/*"]
+}

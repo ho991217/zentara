@@ -1,0 +1,27 @@
+{
+  "name": "@zentara/root",
+  "author": {
+    "name": "HoYeon Lee",
+    "email": "ho991217@kakao.com",
+    "url": "https://github.com/ho991217"
+  },
+  "private": false,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "format": "biome format --write .",
+    "lint:biome": "biome check .",
+    "lint:fix": "biome check --apply ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.0"
+  },
+  "packageManager": "pnpm@8.9.0"
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "emoji": "😀",
+    "aliases": ["grinning", "happy", "smile"],
+    "category": "smileys"
+  },
+  {
+    "emoji": "😂",
+    "aliases": ["joy", "laugh", "lol"],
+    "category": "smileys"
+  },
+  {
+    "emoji": "❤️",
+    "aliases": ["heart", "love"],
+    "category": "symbols"
+  },
+  {
+    "emoji": "👍",
+    "aliases": ["thumbsup", "+1", "like"],
+    "category": "gestures"
+  },
+  {
+    "emoji": "🎉",
+    "aliases": ["party", "celebration", "tada"],
+    "category": "activities"
+  }
+] 

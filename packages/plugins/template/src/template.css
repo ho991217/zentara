@@ -1,0 +1,38 @@
+.zentara-template-suggestions {
+  padding: 0.25rem;
+  max-height: 15rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.zentara-template-suggestion-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.zentara-template-suggestion-item:hover {
+  background-color: #f1f5f9;
+}
+
+.zentara-template-suggestion-item[data-selected='true'] {
+  background-color: #e2e8f0;
+}
+
+.zentara-template-suggestion-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #2563eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,46 @@
+.zentara-emoji-suggestions {
+  padding: 0.25rem;
+  max-height: 15rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.zentara-emoji-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.zentara-emoji-suggestion-item:hover {
+  background-color: #f1f5f9;
+}
+
+.zentara-emoji-suggestion-item[data-selected='true'] {
+  background-color: #e2e8f0;
+}
+
+.zentara-emoji-suggestion-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.zentara-emoji-suggestion-alias {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

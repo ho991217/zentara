@@ -1,6 +1,6 @@
 {
   "name": "@zentara/plugin-suggestions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Suggestions plugin for Zentara input component",
   "keywords": [
     "zentara",

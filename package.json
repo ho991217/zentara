@@ -14,8 +14,7 @@
     "format": "biome format --write .",
     "lint:biome": "biome check .",
     "lint:fix": "biome check --apply .",
-    "release:core": "./scripts/publish.sh @zentara/core",
-    "release:suggestions": "./scripts/publish.sh @zentara/plugin-suggestions"
+    "release": "./scripts/publish.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",

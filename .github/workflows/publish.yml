@@ -1,4 +1,4 @@
-name: Publish to NPM
+name: Publish Package
 
 on:
   push:
@@ -7,10 +7,12 @@ on:
       - '@zentara/plugin-suggestions@*'
 
 jobs:
-  publish:
+  publish-npm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,22 +33,107 @@ jobs:
         run: |
           TAG=${{ github.ref_name }}
           PACKAGE_NAME=$(echo $TAG | cut -d@ -f1-2)
+          VERSION=$(echo $TAG | cut -d@ -f3)
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build and Publish Core
+      - name: Build and Publish Core to NPM
         if: steps.package.outputs.package_name == '@zentara/core'
         run: |
           cd packages/core
           pnpm build
-          pnpm publish --no-git-checks
+          pnpm publish --no-git-checks || echo "Package might already exist in npm"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Build and Publish Suggestions Plugin
+      - name: Build and Publish Suggestions Plugin to NPM
         if: steps.package.outputs.package_name == '@zentara/plugin-suggestions'
         run: |
           cd packages/plugins/suggestions
           pnpm build
-          pnpm publish --no-git-checks
+          pnpm publish --no-git-checks || echo "Package might already exist in npm"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-github:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@zentara'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Extract Package Info
+        id: package
+        run: |
+          TAG=${{ github.ref_name }}
+          PACKAGE_NAME=$(echo $TAG | cut -d@ -f1-2)
+          VERSION=$(echo $TAG | cut -d@ -f3)
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update package.json and Publish Core
+        if: steps.package.outputs.package_name == '@zentara/core'
+        run: |
+          cd packages/core
+          pnpm build
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+          pnpm publish --no-git-checks || echo "Package might already exist in GitHub Packages"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update package.json and Publish Suggestions
+        if: steps.package.outputs.package_name == '@zentara/plugin-suggestions'
+        run: |
+          cd packages/plugins/suggestions
+          pnpm build
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+          pnpm publish --no-git-checks || echo "Package might already exist in GitHub Packages"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+    needs: [publish-npm, publish-github]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          # Get all merged PRs since last release
+          LAST_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^)
+          echo "## Changes" > release_notes.md
+          echo "" >> release_notes.md
+          git log $LAST_TAG..${{ github.ref_name }} --pretty=format:"* %s (%h)" --grep="^feat\|^fix\|^docs\|^refactor" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## Merged Pull Requests" >> release_notes.md
+          echo "" >> release_notes.md
+          git log $LAST_TAG..${{ github.ref_name }} --pretty=format:"* %s (%h)" --grep="^Merge pull request" >> release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

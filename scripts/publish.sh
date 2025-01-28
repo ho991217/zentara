@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Check if package name is provided
+# Check if package directory is provided
 if [ -z "$1" ]; then
-  echo "Please provide a package name (@zentara/core or @zentara/plugin-suggestions)"
+  echo "Please provide a package directory (e.g., core, plugins/suggestions)"
   exit 1
 fi
 
@@ -12,53 +12,39 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-PACKAGE_NAME=$1
+PACKAGE_DIR=$1
 VERSION=$2
 
-# Function to get current version from package.json
-get_current_version() {
-  node -p "require('./packages/${1}/package.json').version"
+# Function to get package info from package.json
+get_package_info() {
+  local field=$1
+  node -p "require('./packages/${PACKAGE_DIR}/package.json').$field"
 }
 
-# Function to increment version
-increment_version() {
-  local current_version=$1
-  local increment_type=$2
-  
-  if [[ $increment_type == "major" || $increment_type == "minor" || $increment_type == "patch" ]]; then
-    npm version $increment_type --no-git-tag-version
-    NEW_VERSION=$(npm pkg get version | tr -d '"')
-  else
-    NEW_VERSION=$increment_type
-  fi
-  
-  echo $NEW_VERSION
+# Get package name and current version
+PACKAGE_NAME=$(get_package_info "name")
+CURRENT_VERSION=$(get_package_info "version")
+
+# Change to package directory
+cd "packages/$PACKAGE_DIR" || {
+  echo "Error: Package directory 'packages/$PACKAGE_DIR' not found"
+  exit 1
 }
 
-# Determine package directory
-case $PACKAGE_NAME in
-  "@zentara/core")
-    PACKAGE_DIR="core"
-    ;;
-  "@zentara/plugin-suggestions")
-    PACKAGE_DIR="plugins/suggestions"
-    ;;
-  *)
-    echo "Invalid package name. Please use @zentara/core or @zentara/plugin-suggestions"
-    exit 1
-    ;;
-esac
+# Update version in package.json
+if [[ $VERSION == "major" || $VERSION == "minor" || $VERSION == "patch" ]]; then
+  NEW_VERSION=$(npm --no-git-tag-version version $VERSION)
+  NEW_VERSION=${NEW_VERSION:1} # Remove the 'v' prefix
+else
+  npm --no-git-tag-version version $VERSION
+  NEW_VERSION=$VERSION
+fi
 
-# Get current version and increment it
-cd "packages/$PACKAGE_DIR"
-CURRENT_VERSION=$(get_current_version $PACKAGE_DIR)
-NEW_VERSION=$(increment_version $CURRENT_VERSION $VERSION)
-
-# Update package.json version
-npm version $NEW_VERSION --no-git-tag-version
+# Go back to root
+cd ../..
 
 # Create and push git tag
-git add package.json
+git add "packages/$PACKAGE_DIR/package.json"
 git commit -m "chore(release): $PACKAGE_NAME@$NEW_VERSION"
 git tag "$PACKAGE_NAME@$NEW_VERSION"
 git push origin "$PACKAGE_NAME@$NEW_VERSION"

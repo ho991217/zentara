@@ -1,6 +1,6 @@
 {
   "name": "@zentara/core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -15,9 +15,6 @@
     "lint": "biome check src/",
     "format": "biome format --write src/",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
-  },
-  "dependencies": {
-    "@zentara/types": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",

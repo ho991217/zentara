@@ -1,0 +1,5 @@
+---
+"@zentara/docs": minor
+---
+
+Added

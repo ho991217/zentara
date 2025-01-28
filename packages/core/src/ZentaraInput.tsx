@@ -6,7 +6,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from 'react';
-import type { Plugin, PluginContext, PluginWithConfig } from '@zentara/types';
+import type { PluginContext, PluginWithConfig } from './types';
 import './ZentaraInput.css';
 
 export interface ZentaraInputProps<TConfig = unknown> {

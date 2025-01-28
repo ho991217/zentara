@@ -38,7 +38,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@zentara/core": "^0.1.0"
+    "@zentara/core": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",

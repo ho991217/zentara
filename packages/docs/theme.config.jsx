@@ -1,4 +1,6 @@
 import { Logo } from './components/Logo';
+import { useRouter } from 'next/router';
+import { useConfig } from 'nextra-theme-docs';
 
 export default {
   logo: () => (
@@ -37,5 +39,24 @@ export default {
   },
   search: {
     placeholder: 'Search documentation...',
+  },
+  head() {
+    const { asPath, defaultLocale, locale } = useRouter();
+    const { frontMatter } = useConfig();
+    const url = `https://zentara.dev${
+      defaultLocale === locale ? asPath : `/${locale}${asPath}`
+    }`;
+
+    return (
+      <>
+        <meta property='og:url' content={url} />
+        <meta property='og:title' content={frontMatter.title || 'Zentara'} />
+        <meta
+          property='og:description'
+          content={frontMatter.description || 'Flexible input component'}
+        />
+        <meta property='og:image' content='./opengraph-image.png' />
+      </>
+    );
   },
 };

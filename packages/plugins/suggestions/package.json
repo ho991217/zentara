@@ -22,16 +22,14 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "style": "./dist/index.css",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "license": "MIT",
   "files": [
     "dist/**"
   ],
   "scripts": {
-    "build": "tsup src/index.tsx --format esm,cjs --dts --external react --inject-style",
-    "dev": "tsup src/index.tsx --format esm,cjs --watch --dts --external react --inject-style",
+    "build": "tsup src/index.ts --format esm,cjs --dts --minify --clean --treeshake --target=es2018",
+    "dev": "tsup src/index.ts --format esm,cjs --watch --dts",
     "lint": "biome check src/",
     "format": "biome format --write src/",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",

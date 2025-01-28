@@ -10,7 +10,7 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "build": "tsup src/index.ts --format esm,cjs --dts --minify --clean --treeshake --target=es2018",
     "dev": "tsup src/index.ts --format esm,cjs --watch --dts",
     "lint": "biome check src/",
     "format": "biome format --write src/",

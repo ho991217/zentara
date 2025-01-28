@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ZentaraInput } from '@zentara/core';
 import { suggestionsPlugin } from '@zentara/plugin-suggestions';
 import './App.css';
+import '@zentara/core/dist/index.css';
+import '@zentara/plugin-suggestions/dist/index.css';
 
 const emojiMap = {
   grinning: '😀',

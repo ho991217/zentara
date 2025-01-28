@@ -7,8 +7,10 @@ import {
   memo,
   type ChangeEvent,
   type KeyboardEvent,
+  type CSSProperties,
 } from 'react';
-import type { PluginContext, PluginWithConfig } from './types';
+import type { PluginContext } from './types';
+import type { PluginWithConfig } from './plugin';
 import './ZentaraInput.css';
 
 export interface ZentaraInputProps<TConfig = unknown> {
@@ -18,6 +20,7 @@ export interface ZentaraInputProps<TConfig = unknown> {
   className?: string;
   placeholder?: string;
   error?: string;
+  style?: CSSProperties;
 }
 
 type PluginOverlayProps<TConfig> = {
@@ -57,6 +60,7 @@ export function ZentaraInput<TConfig = unknown>({
   className,
   placeholder,
   error,
+  style,
 }: ZentaraInputProps<TConfig>) {
   const [internalValue, setInternalValue] = useState(externalValue || '');
   const sharedState = useRef<Record<string, unknown>>({});
@@ -156,10 +160,20 @@ export function ZentaraInput<TConfig = unknown>({
     setInternalValue((prev) => prev);
   }, []);
 
-  const customInputRenderer = useMemo(
-    () => plugins?.find((p) => p.plugin.renderInput)?.plugin.renderInput,
+  const customInputRenderers = useMemo(
+    () => plugins?.filter((p) => p.plugin.renderInput),
     [plugins]
   );
+
+  if (customInputRenderers && customInputRenderers.length > 1) {
+    console.warn(
+      `Multiple plugins with renderInput detected. Only the first one will be used: ${customInputRenderers
+        .map((p) => p.plugin.name)
+        .join(', ')}`
+    );
+  }
+
+  const customInputRenderer = customInputRenderers?.[0]?.plugin.renderInput;
 
   return (
     <div className='zentara-input-container'>
@@ -172,6 +186,7 @@ export function ZentaraInput<TConfig = unknown>({
             onSelect: handleSelect,
             className: `zentara-input ${className || ''}`,
             placeholder,
+            style,
           })
         ) : (
           <input
@@ -183,6 +198,7 @@ export function ZentaraInput<TConfig = unknown>({
             onSelect={handleSelect}
             className={`zentara-input ${className || ''}`}
             placeholder={placeholder}
+            style={style}
           />
         )}
       </div>

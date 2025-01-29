@@ -1,5 +1,4 @@
-export * from './createPluginFactory';
-export * from './inputRenderProps';
+export * from './createPlugin';
 export * from './plugin';
 export * from './pluginContext';
 export * from './stateManager';

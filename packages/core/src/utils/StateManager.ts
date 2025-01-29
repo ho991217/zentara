@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { PluginStateManager } from '../types';
 
-/**
- * Hook for subscribing to plugin state changes
- */
-function usePluginState<TState>(stateManager: PluginStateManager<TState>) {
-  const [state, setState] = useState(() => stateManager.getState());
+function usePluginState<TState>(stateManager: StateManager<TState>): TState {
+  const [state, setState] = useState(stateManager.getState());
 
   useEffect(() => {
-    const unsubscribe = stateManager.subscribe(() => {
+    return stateManager.subscribe(() => {
       setState(stateManager.getState());
     });
-    return unsubscribe;
   }, [stateManager]);
 
   return state;

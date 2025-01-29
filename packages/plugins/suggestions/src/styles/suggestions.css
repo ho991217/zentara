@@ -64,7 +64,7 @@
   text-overflow: ellipsis;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   .zentara-suggestions {
     background: #1e1e1e;
     border-color: #404040;
@@ -85,4 +85,4 @@
   .zentara-suggestion-code {
     color: #60a5fa;
   }
-}
+} */

@@ -1,215 +1,175 @@
-import { useMemo, useCallback } from 'react';
-import { SUGGESTION_CONFIG } from './constants';
-import { getSuggestions } from './utils/getSuggestions';
-import { findMatchingRule } from './utils/findMatchingRule';
+import type { PluginContext } from '@zentara/core';
+import { createPlugin } from '@zentara/core';
+import type { KeyboardEvent } from 'react';
 import type {
-  SuggestionItem,
-  SuggestionRule,
   SuggestionsPluginConfig,
-} from './types';
+  SuggestionsPluginState,
+} from './types/suggestions';
 import { SuggestionsList } from './components/SuggestionList';
-import { createPluginFactory } from '@zentara/core';
+import { updateSuggestions } from './utils/updateSuggestions';
 
-/** Internal state for managing suggestions */
-interface PluginState<T extends SuggestionItem = string> {
-  isOpen: boolean;
-  selectedIndex: number;
-  activeTrigger: string | null;
-  activeRule: SuggestionRule<T> | null;
-}
-
-const initialState: PluginState = {
-  isOpen: false,
-  selectedIndex: -1,
-  activeTrigger: null,
-  activeRule: null,
-};
-
-export const suggestionsPlugin = createPluginFactory<
+export const suggestionsPlugin = createPlugin<
   SuggestionsPluginConfig,
-  PluginState
->()({
-  initialState,
-  createPlugin: (stateManager) => ({
-    name: 'suggestions',
+  SuggestionsPluginState
+>({
+  initialState: {
+    isOpen: false,
+    suggestions: [],
+    selectedIndex: 0,
+    currentChunk: null,
+  },
+  create: (stateManager) => {
+    let preventBlur = false;
 
-    onValueChange: (value, context) => {
-      const config = context.config ?? {
-        rules: [],
-        maxSuggestions: SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT,
-      };
-      const beforeCursor = value.slice(0, context.cursor.start);
-
-      const match = findMatchingRule(beforeCursor, config.rules);
-      if (match) {
-        stateManager.setState({
-          isOpen: true,
-          selectedIndex: 0,
-          activeTrigger: match.trigger,
-          activeRule: match.rule,
-        });
-      } else {
-        stateManager.reset();
-      }
-
-      return value;
-    },
-
-    onKeyDown: (event, context) => {
+    const onSelect = (
+      suggestion: string,
+      context: PluginContext<SuggestionsPluginConfig>
+    ) => {
       const state = stateManager.getState();
-      if (!state.isOpen || !state.activeTrigger || !state.activeRule) {
-        return;
-      }
+      const config = context.config;
+      if (!state.currentChunk || !config) return;
 
-      const config = context.config ?? {
-        rules: [],
-        maxSuggestions: SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT,
-      };
-      const value = context.value;
-      const beforeCursor = value.slice(0, context.cursor.start);
-      const triggerIndex = beforeCursor.lastIndexOf(state.activeTrigger);
+      const transformed = config.transform
+        ? config.transform(suggestion)
+        : suggestion;
 
-      if (triggerIndex === -1) {
-        stateManager.reset();
-        return;
-      }
-
-      const searchText = beforeCursor.slice(
-        triggerIndex + state.activeTrigger.length
-      );
-
-      if (searchText.includes(' ')) {
-        stateManager.reset();
-        return;
-      }
-
-      const suggestions = getSuggestions(searchText, state.activeRule).slice(
+      const newValue = `${context.value.slice(
         0,
-        config.maxSuggestions
-      );
+        state.currentChunk.start
+      )}${transformed}${context.value.slice(state.currentChunk.end)}`;
 
-      if (suggestions.length === 0) {
-        stateManager.reset();
-        return;
-      }
+      context.setValue(newValue);
+      stateManager.reset();
+    };
 
-      switch (event.key) {
-        case 'ArrowDown':
-          stateManager.setState({
-            selectedIndex: Math.min(
-              state.selectedIndex + 1,
-              suggestions.length - 1
-            ),
-          });
-          event.preventDefault();
-          break;
-        case 'ArrowUp':
-          stateManager.setState({
-            selectedIndex: Math.max(state.selectedIndex - 1, 0),
-          });
-          event.preventDefault();
-          break;
-        case 'Enter':
-        case 'Tab':
-          if (state.selectedIndex >= 0) {
-            const selected = suggestions[state.selectedIndex];
-            if (selected && state.activeRule) {
-              const transformed = state.activeRule.transform(selected);
-              const newValue = `${value.slice(
-                0,
-                triggerIndex
-              )}${transformed}${value.slice(context.cursor.start)}`;
-              context.setValue(newValue);
-              stateManager.reset();
-              event.preventDefault();
+    return {
+      name: 'suggestions',
+
+      init: (context: PluginContext<SuggestionsPluginConfig>) => {
+        updateSuggestions(context, stateManager);
+      },
+
+      onValueChange: async (
+        value: string,
+        context: PluginContext<SuggestionsPluginConfig>
+      ) => {
+        updateSuggestions(context, stateManager);
+        return value;
+      },
+
+      onSelect: (context: PluginContext<SuggestionsPluginConfig>) => {
+        updateSuggestions(context, stateManager);
+      },
+
+      onBlur: () => {
+        if (!preventBlur && stateManager.getState().isOpen) {
+          stateManager.reset();
+        }
+        preventBlur = false;
+      },
+
+      onFocus: (context: PluginContext<SuggestionsPluginConfig>) => {
+        updateSuggestions(context, stateManager);
+      },
+
+      onKeyDown: (
+        event: KeyboardEvent<HTMLInputElement>,
+        context: PluginContext<SuggestionsPluginConfig>
+      ) => {
+        const state = stateManager.getState();
+        const config = context.config;
+        if (!state.isOpen || !state.currentChunk || !config) return;
+
+        switch (event.key) {
+          case 'ArrowUp': {
+            event.preventDefault();
+            stateManager.setState({
+              selectedIndex: Math.max(0, state.selectedIndex - 1),
+            });
+            break;
+          }
+          case 'ArrowDown': {
+            event.preventDefault();
+            stateManager.setState({
+              selectedIndex: Math.min(
+                state.suggestions.length - 1,
+                state.selectedIndex + 1
+              ),
+            });
+            break;
+          }
+          case 'Enter': {
+            event.preventDefault();
+            if (state.selectedIndex >= 0 && state.suggestions.length > 0) {
+              onSelect(state.suggestions[state.selectedIndex], context);
             }
+            break;
           }
-          break;
-        case 'Escape':
-          stateManager.reset();
-          event.preventDefault();
-          break;
-      }
-    },
-
-    renderOverlay: (context) => {
-      const config = context.config ?? {
-        rules: [],
-        maxSuggestions: SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT,
-      };
-      const state = stateManager.usePluginState();
-
-      const value = context.value;
-      const beforeCursor = value.slice(0, context.cursor.start);
-
-      const suggestions = useMemo(() => {
-        if (!state.isOpen || !state.activeTrigger || !state.activeRule) {
-          return [];
-        }
-
-        const triggerIndex = beforeCursor.lastIndexOf(state.activeTrigger);
-        if (triggerIndex === -1) {
-          stateManager.reset();
-          return [];
-        }
-
-        const searchText = beforeCursor.slice(
-          triggerIndex + state.activeTrigger.length
-        );
-
-        if (searchText.includes(' ')) {
-          stateManager.reset();
-          return [];
-        }
-
-        return getSuggestions(searchText, state.activeRule).slice(
-          0,
-          config.maxSuggestions
-        );
-      }, [beforeCursor, config.maxSuggestions, state, stateManager.reset]);
-
-      const handleSuggestionSelect = useCallback(
-        (suggestion: SuggestionItem) => {
-          if (!state.isOpen || !state.activeTrigger || !state.activeRule) {
-            return;
-          }
-
-          const triggerIndex = beforeCursor.lastIndexOf(state.activeTrigger);
-          if (triggerIndex === -1) {
+          case 'Escape': {
+            event.preventDefault();
             stateManager.reset();
-            return;
+            break;
           }
+        }
+      },
 
-          const transformed = state.activeRule.transform(suggestion);
-          const newValue = `${value.slice(
-            0,
-            triggerIndex
-          )}${transformed}${value.slice(context.cursor.start)}`;
-          context.setValue(newValue);
-          stateManager.reset();
-        },
-        [
-          beforeCursor,
-          context.cursor.start,
-          context.setValue,
-          state,
-          stateManager.reset,
-          value,
-        ]
-      );
+      renderOverlay: (context: PluginContext<SuggestionsPluginConfig>) => {
+        const state = stateManager.usePluginState();
+        const config = context.config;
+        if (
+          !state.isOpen ||
+          !state.currentChunk ||
+          state.suggestions.length === 0 ||
+          !config
+        ) {
+          return null;
+        }
 
-      if (!state.isOpen || suggestions.length === 0) {
-        return null;
-      }
+        // 입력 요소의 위치와 크기 정보 가져오기
+        const inputElement = context.inputRef.current;
+        if (!inputElement) return null;
 
-      return (
-        <SuggestionsList
-          suggestions={suggestions}
-          selectedIndex={state.selectedIndex}
-          onSelect={handleSuggestionSelect}
-          renderSuggestion={state.activeRule?.renderSuggestion}
-        />
-      );
-    },
-  }),
+        const inputRect = inputElement.getBoundingClientRect();
+
+        // 커서 위치 계산을 위한 임시 span 생성
+        const span = document.createElement('span');
+        span.style.font = window.getComputedStyle(inputElement).font;
+        span.style.position = 'absolute';
+        span.style.visibility = 'hidden';
+        span.textContent = inputElement.value.substring(
+          0,
+          state.currentChunk.start
+        );
+        document.body.appendChild(span);
+
+        // 커서 위치 계산
+        const cursorOffset = span.getBoundingClientRect().width;
+        document.body.removeChild(span);
+
+        // 오버레이 위치 계산
+        const VERTICAL_PADDING = 8;
+        const top = inputRect.bottom + VERTICAL_PADDING + window.scrollY;
+        const left = inputRect.left + cursorOffset + window.scrollX;
+
+        return (
+          <SuggestionsList
+            suggestions={state.suggestions}
+            selectedIndex={state.selectedIndex}
+            onSelect={(suggestion: string) => onSelect(suggestion, context)}
+            renderSuggestion={config.renderSuggestion}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              preventBlur = true;
+            }}
+            style={{
+              position: 'fixed',
+              top: `${top}px`,
+              left: `${left}px`,
+              zIndex: 1000,
+            }}
+          />
+        );
+      },
+    };
+  },
 });

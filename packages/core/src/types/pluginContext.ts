@@ -77,11 +77,4 @@ export interface PluginContext<TConfig = unknown> {
    * Type is defined by the plugin's TConfig template parameter.
    */
   config?: TConfig;
-
-  /**
-   * Shared state object accessible by all plugins.
-   * Use this to communicate between plugins if necessary.
-   * Keys should be plugin-specific to avoid conflicts.
-   */
-  shared: Record<string, unknown>;
 }

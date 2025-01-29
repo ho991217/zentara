@@ -1,6 +1,6 @@
 import type { KeyboardEvent, ReactNode } from 'react';
-import type { InputRenderProps } from './inputRenderProps';
 import type { PluginContext } from './pluginContext';
+import { InputRenderProps } from '../components/ZentaraInput';
 
 /** Plugin interface for extending ZentaraInput functionality */
 export interface Plugin<TConfig = unknown> {
@@ -115,6 +115,49 @@ export interface Plugin<TConfig = unknown> {
   ) => void;
 
   /**
+   * Called when the plugin is selected.
+   * Use this to handle any actions when the plugin is selected.
+   *
+   * @param context - The plugin context
+   *
+   * @example
+   * ```ts
+   * onSelect: (context) => {
+   *   // Handle actions when the plugin is selected
+   * }
+   * ```
+   */
+  onSelect?: (context: PluginContext<TConfig>) => void;
+
+  /**
+   * Called when the input is blurred.
+   * Use this to handle any actions when the input is blurred.
+   *
+   * @example
+   * ```ts
+   * onBlur: () => {
+   *   // Handle actions when the input is blurred
+   * }
+   * ```
+   */
+  onBlur?: () => void;
+
+  /**
+   * Called when the input is focused.
+   * Use this to handle any actions when the input is focused.
+   *
+   * @param context - The plugin context
+   *
+   * @example
+   * ```ts
+   * onFocus: (context) => {
+   *   // Handle actions when the input is focused
+   * }
+   * ```
+   */
+  onFocus?: (context: PluginContext<TConfig>) => void;
+
+  /**
    * Renders additional content that overlays the input.
    * Use this to show suggestions, tooltips, or any other floating UI elements.
    * The overlay will be positioned relative to the input element.
@@ -203,3 +246,23 @@ export interface PluginWithConfig<TConfig = unknown> {
   /** Plugin configuration */
   config?: TConfig;
 }
+
+export interface PluginFactory<TConfig = unknown> {
+  __isPluginFactory: true;
+  createInstance: () => Plugin<TConfig>;
+  config: TConfig;
+}
+
+export type AnyConfig = Record<string, unknown>;
+
+export type PluginOrFactory<TConfig> =
+  | PluginWithConfig<TConfig>
+  | PluginFactory<TConfig>;
+
+export const isPluginFactory = <TConfig extends AnyConfig>(
+  plugin: PluginOrFactory<TConfig>
+): plugin is PluginFactory<TConfig> => {
+  return (
+    plugin && '__isPluginFactory' in plugin && plugin.__isPluginFactory === true
+  );
+};

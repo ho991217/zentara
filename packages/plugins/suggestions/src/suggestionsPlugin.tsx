@@ -8,7 +8,7 @@ import type {
   SuggestionsPluginConfig,
 } from './types';
 import { SuggestionsList } from './components/SuggestionList';
-import { createPluginFactory } from '@zentara/core';
+import { createPlugin } from '@zentara/core';
 
 /** Internal state for managing suggestions */
 interface PluginState<T extends SuggestionItem = string> {
@@ -25,12 +25,12 @@ const initialState: PluginState = {
   activeRule: null,
 };
 
-export const suggestionsPlugin = createPluginFactory<
+export const suggestionsPlugin = createPlugin<
   SuggestionsPluginConfig,
   PluginState
->()({
+>({
   initialState,
-  createPlugin: (stateManager) => ({
+  create: (stateManager) => ({
     name: 'suggestions',
 
     onValueChange: (value, context) => {
@@ -42,12 +42,34 @@ export const suggestionsPlugin = createPluginFactory<
 
       const match = findMatchingRule(beforeCursor, config.rules);
       if (match) {
-        stateManager.setState({
-          isOpen: true,
-          selectedIndex: 0,
-          activeTrigger: match.trigger,
-          activeRule: match.rule,
-        });
+        const triggerIndex = beforeCursor.lastIndexOf(match.trigger);
+        const searchText = beforeCursor.slice(
+          triggerIndex + match.trigger.length
+        );
+
+        // 공백이 있으면 suggestions를 닫음
+        if (searchText.includes(' ')) {
+          stateManager.reset();
+          return value;
+        }
+
+        // 초기 suggestions 목록을 가져옴
+        const suggestions = getSuggestions(searchText, match.rule).slice(
+          0,
+          config.maxSuggestions
+        );
+
+        // suggestions가 있을 때만 상태를 업데이트
+        if (suggestions.length > 0) {
+          stateManager.setState({
+            isOpen: true,
+            selectedIndex: 0,
+            activeTrigger: match.trigger,
+            activeRule: match.rule,
+          });
+        } else {
+          stateManager.reset();
+        }
       } else {
         stateManager.reset();
       }
@@ -149,7 +171,6 @@ export const suggestionsPlugin = createPluginFactory<
 
         const triggerIndex = beforeCursor.lastIndexOf(state.activeTrigger);
         if (triggerIndex === -1) {
-          stateManager.reset();
           return [];
         }
 
@@ -157,16 +178,11 @@ export const suggestionsPlugin = createPluginFactory<
           triggerIndex + state.activeTrigger.length
         );
 
-        if (searchText.includes(' ')) {
-          stateManager.reset();
-          return [];
-        }
-
         return getSuggestions(searchText, state.activeRule).slice(
           0,
           config.maxSuggestions
         );
-      }, [beforeCursor, config.maxSuggestions, state, stateManager.reset]);
+      }, [beforeCursor, config.maxSuggestions, state]);
 
       const handleSuggestionSelect = useCallback(
         (suggestion: SuggestionItem) => {

@@ -11,7 +11,8 @@
         "noUnusedVariables": "error"
       },
       "suspicious": {
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noConsoleLog": "error"
       },
       "style": {
         "useShorthandArrayType": "error"

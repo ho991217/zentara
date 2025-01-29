@@ -26,8 +26,8 @@ const initialState: PluginState = {
 };
 
 export const suggestionsPlugin = createPluginFactory<
-  PluginState,
-  SuggestionsPluginConfig
+  SuggestionsPluginConfig,
+  PluginState
 >()({
   initialState,
   createPlugin: (stateManager) => ({

@@ -1,5 +1,5 @@
-import type { Plugin } from '../plugin';
-import { PluginStateManager } from './StateManager.types';
+import type { Plugin } from './plugin';
+import { PluginStateManager } from './stateManager';
 
 /** Plugin factory configuration */
 export interface CreatePluginConfig<TState, TConfig = unknown> {

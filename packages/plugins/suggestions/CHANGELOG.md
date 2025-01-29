@@ -1,5 +1,16 @@
 # @zentara/plugin-suggestions
 
+## 0.5.0
+
+### Minor Changes
+
+- 4e709a6: Minor
+
+### Patch Changes
+
+- Updated dependencies [4e709a6]
+  - @zentara/core@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes

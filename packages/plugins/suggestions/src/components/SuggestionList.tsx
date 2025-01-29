@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, ReactNode } from 'react';
 import type { SuggestionItem } from '../types';
 
 /** Props for the suggestions list component */
@@ -6,7 +6,7 @@ interface SuggestionsListProps<T extends SuggestionItem = string> {
   suggestions: T[];
   selectedIndex: number;
   onSelect: (suggestion: T) => void;
-  renderSuggestion?: (suggestion: T) => JSX.Element;
+  renderSuggestion?: (suggestion: T) => ReactNode;
   onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 

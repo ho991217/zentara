@@ -4,6 +4,7 @@ import type {
   SuggestionsPluginState,
 } from '../types/suggestions';
 import { getCurrentChunk } from './getCurrentChunk';
+import { SUGGESTION_CONFIG } from '@/constants';
 
 export const updateSuggestions = (
   context: PluginContext<SuggestionsPluginConfig>,
@@ -26,9 +27,14 @@ export const updateSuggestions = (
   }
 
   const searchText = chunk.text.slice(chunk.trigger.length).toLowerCase();
-  const filteredSuggestions = config.suggestions.filter((suggestion: string) =>
-    suggestion.toLowerCase().startsWith(searchText)
-  );
+  const filteredSuggestions = config.suggestions
+    .filter((suggestion: string) =>
+      suggestion.toLowerCase().startsWith(searchText)
+    )
+    .slice(
+      0,
+      config.maxSuggestions ?? SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT
+    );
 
   if (filteredSuggestions.length > 0) {
     stateManager.setState({

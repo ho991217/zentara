@@ -64,6 +64,10 @@ function App() {
             suggestionsPlugin({
               triggers: [':'],
               suggestions: Object.keys(emojiMap),
+              renderSuggestion: (suggestion) => {
+                const key = suggestion as keyof typeof emojiMap;
+                return <span>{emojiMap[key]}</span>;
+              },
               transform: (suggestion) => {
                 const key = suggestion as keyof typeof emojiMap;
                 return `${emojiMap[key]} `;
@@ -79,6 +83,9 @@ function App() {
               triggers: ['{', '{{', '{{.'],
               suggestions: [...variables],
               transform: (suggestion) => `{{.${suggestion}}}`,
+              renderSuggestion: (suggestion) => (
+                <code>{`{{.${suggestion}}}`}</code>
+              ),
             }),
           ]}
         />

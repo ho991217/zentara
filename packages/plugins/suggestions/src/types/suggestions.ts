@@ -23,6 +23,8 @@ export interface SuggestionsPluginConfig {
   triggers: string[];
   suggestions: string[];
   transform?: (suggestion: string) => string;
+  maxSuggestions?: number;
+  renderSuggestion?: (suggestion: string) => ReactNode;
 }
 
 export interface SuggestionsPluginState {

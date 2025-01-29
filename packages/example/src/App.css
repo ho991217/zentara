@@ -38,6 +38,7 @@ code {
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-family: monospace;
+  font-size: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {

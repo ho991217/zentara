@@ -130,6 +130,7 @@ export const suggestionsPlugin = createPlugin<
             suggestions={state.suggestions}
             selectedIndex={state.selectedIndex}
             onSelect={(suggestion: string) => onSelect(suggestion, context)}
+            renderSuggestion={config.renderSuggestion}
             onMouseDown={(e) => {
               e.preventDefault();
               preventBlur = true;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { PluginStateManager } from './StateManager.types.ts';
+import type { PluginStateManager } from '../types';
 
 /**
  * Hook for subscribing to plugin state changes

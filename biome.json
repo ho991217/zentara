@@ -16,6 +16,9 @@
       },
       "style": {
         "useShorthandArrayType": "error"
+      },
+      "complexity": {
+        "noForEach": "off"
       }
     }
   },

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ZentaraInput } from '@zentara/core';
 import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+import type { SuggestionsPluginConfig } from '@zentara/plugin-suggestions';
 import './App.css';
 import '@zentara/core/dist/index.css';
 import '@zentara/plugin-suggestions/dist/index.css';
@@ -56,65 +57,29 @@ function App() {
             <code>#123</code> or <code>issue-456</code> for issue references
           </li>
         </ul>
-        <ZentaraInput
+        <ZentaraInput<SuggestionsPluginConfig>
           value={value}
           onChange={setValue}
           plugins={[
-            {
-              plugin: suggestionsPlugin,
-              config: {
-                rules: [
-                  {
-                    // Emoji suggestions
-                    triggers: [':'],
-                    suggestions: Object.keys(emojiMap),
-                    transform: (suggestion: string) => {
-                      const key = suggestion as keyof typeof emojiMap;
-                      return `${emojiMap[key]} `;
-                    },
-                    renderSuggestion: (suggestion: string) => {
-                      const key = suggestion as keyof typeof emojiMap;
-                      return (
-                        <>
-                          <span className='zentara-suggestion-primary'>
-                            {emojiMap[key]}
-                          </span>
-                          <span className='zentara-suggestion-secondary'>
-                            {`:${suggestion}:`}
-                          </span>
-                        </>
-                      );
-                    },
-                  },
-                ],
-                maxSuggestions: 5,
+            suggestionsPlugin({
+              triggers: [':'],
+              suggestions: Object.keys(emojiMap),
+              transform: (suggestion) => {
+                const key = suggestion as keyof typeof emojiMap;
+                return `${emojiMap[key]} `;
               },
-            },
+            }),
           ]}
         />
-        <ZentaraInput
+        <ZentaraInput<SuggestionsPluginConfig>
           value={value2}
           onChange={setValue2}
           plugins={[
-            {
-              plugin: suggestionsPlugin,
-              config: {
-                rules: [
-                  {
-                    // Template variable suggestions
-                    triggers: ['{', '{{', '{{.'],
-                    suggestions: [...variables],
-                    transform: (suggestion: string) => `{{.${suggestion}}}`,
-                    renderSuggestion: (suggestion: string) => (
-                      <code className='zentara-suggestion-code'>
-                        {`{{.${suggestion}}}`}
-                      </code>
-                    ),
-                  },
-                ],
-                maxSuggestions: 5,
-              },
-            },
+            suggestionsPlugin({
+              triggers: ['{', '{{', '{{.'],
+              suggestions: [...variables],
+              transform: (suggestion) => `{{.${suggestion}}}`,
+            }),
           ]}
         />
       </div>

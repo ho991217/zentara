@@ -1,23 +1,27 @@
-import type { CreatePluginConfig, Plugin } from '../types';
+import type { CreatePluginConfig, Plugin, PluginFactory } from '../types';
 import { StateManager } from './StateManager';
 
-export const createPlugin = (() => {
-  return <TConfig, TState>(config: CreatePluginConfig<TConfig, TState>) => {
-    if (config.initialState == null) {
-      const plugin = config.create(null as never);
+export const createPlugin = <TConfig, TState>(
+  config: CreatePluginConfig<TConfig, TState>
+): ((pluginConfig: TConfig) => PluginFactory<TConfig>) => {
+  return (pluginConfig: TConfig) => {
+    const createPluginInstance = () => {
+      const stateManager = new StateManager<TState>(config.initialState);
+      const plugin = config.create(stateManager);
 
       return {
         ...plugin,
-        destroy: () => {},
+        destroy: () => {
+          stateManager.destroy();
+          plugin.destroy?.();
+        },
       } as Plugin<TConfig>;
-    }
-
-    const stateManager = new StateManager<TState>(config.initialState);
-    const plugin = config.create(stateManager);
+    };
 
     return {
-      ...plugin,
-      destroy: stateManager.destroy,
-    } as Plugin<TConfig>;
+      __isPluginFactory: true as const,
+      createInstance: createPluginInstance,
+      config: pluginConfig,
+    };
   };
-})();
+};

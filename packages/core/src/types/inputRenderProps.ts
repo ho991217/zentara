@@ -60,6 +60,18 @@ export interface InputRenderProps<TConfig = unknown>
   onSelect: () => void;
 
   /**
+   * Handler for blur events.
+   * Must be called when the input loses focus.
+   */
+  onBlur: () => void;
+
+  /**
+   * Handler for focus events.
+   * Must be called when the input gains focus.
+   */
+  onFocus: () => void;
+
+  /**
    * CSS class name to apply to the input element.
    * Combines core styles with any custom styles.
    */

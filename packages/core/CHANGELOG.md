@@ -1,5 +1,11 @@
 # @zentara/core
 
+## 0.5.0
+
+### Minor Changes
+
+- 4e709a6: Minor
+
 ## 0.4.1
 
 ### Patch Changes

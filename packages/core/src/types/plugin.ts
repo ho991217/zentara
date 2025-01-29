@@ -1,6 +1,6 @@
 import type { KeyboardEvent, ReactNode } from 'react';
-import type { InputRenderProps } from './inputRenderProps';
 import type { PluginContext } from './pluginContext';
+import { InputRenderProps } from '../components/ZentaraInput';
 
 /** Plugin interface for extending ZentaraInput functionality */
 export interface Plugin<TConfig = unknown> {
@@ -253,11 +253,13 @@ export interface PluginFactory<TConfig = unknown> {
   config: TConfig;
 }
 
+export type AnyConfig = Record<string, unknown>;
+
 export type PluginOrFactory<TConfig> =
   | PluginWithConfig<TConfig>
   | PluginFactory<TConfig>;
 
-export const isPluginFactory = <TConfig>(
+export const isPluginFactory = <TConfig extends AnyConfig>(
   plugin: PluginOrFactory<TConfig>
 ): plugin is PluginFactory<TConfig> => {
   return (

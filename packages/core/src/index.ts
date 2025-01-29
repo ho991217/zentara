@@ -1,7 +1,10 @@
-export { ZentaraInput } from './components/ZentaraInput';
+export {
+  ZentaraInput,
+  type ZentaraInputProps,
+  type InputRenderProps,
+} from './components/ZentaraInput';
 export type {
   PluginContext,
-  InputRenderProps,
   CreatePluginConfig,
   Plugin,
   PluginWithConfig,

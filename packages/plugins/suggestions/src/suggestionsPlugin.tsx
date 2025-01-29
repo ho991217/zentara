@@ -125,6 +125,32 @@ export const suggestionsPlugin = createPlugin<
           return null;
         }
 
+        // 입력 요소의 위치와 크기 정보 가져오기
+        const inputElement = context.inputRef.current;
+        if (!inputElement) return null;
+
+        const inputRect = inputElement.getBoundingClientRect();
+
+        // 커서 위치 계산을 위한 임시 span 생성
+        const span = document.createElement('span');
+        span.style.font = window.getComputedStyle(inputElement).font;
+        span.style.position = 'absolute';
+        span.style.visibility = 'hidden';
+        span.textContent = inputElement.value.substring(
+          0,
+          state.currentChunk.start
+        );
+        document.body.appendChild(span);
+
+        // 커서 위치 계산
+        const cursorOffset = span.getBoundingClientRect().width;
+        document.body.removeChild(span);
+
+        // 오버레이 위치 계산
+        const VERTICAL_PADDING = 8;
+        const top = inputRect.bottom + VERTICAL_PADDING + window.scrollY;
+        const left = inputRect.left + cursorOffset + window.scrollX;
+
         return (
           <SuggestionsList
             suggestions={state.suggestions}
@@ -134,6 +160,12 @@ export const suggestionsPlugin = createPlugin<
             onMouseDown={(e) => {
               e.preventDefault();
               preventBlur = true;
+            }}
+            style={{
+              position: 'fixed',
+              top: `${top}px`,
+              left: `${left}px`,
+              zIndex: 1000,
             }}
           />
         );

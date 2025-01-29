@@ -39,11 +39,14 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
     const inputWrapperRef = useRef<HTMLDivElement>(null);
     const processingRef = useRef(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const pluginInstancesRef = useRef<PluginWithConfig<AnyConfig>[]>([]);
 
-    const pluginInstances = useMemo(() => {
-      if (!plugins) return [];
-
-      return plugins.map((pluginConfig) => {
+    // Create plugin instances
+    if (
+      plugins &&
+      (!pluginInstancesRef.current || pluginInstancesRef.current.length === 0)
+    ) {
+      pluginInstancesRef.current = plugins.map((pluginConfig) => {
         if (isPluginFactory(pluginConfig)) {
           return {
             plugin: pluginConfig.createInstance(),
@@ -52,7 +55,17 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
         }
         return pluginConfig;
       });
-    }, [plugins]);
+    }
+
+    // cleanup on unmount
+    useEffect(() => {
+      return () => {
+        pluginInstancesRef.current.forEach((pluginWithConfig) => {
+          pluginWithConfig.plugin.destroy?.();
+        });
+        pluginInstancesRef.current = [];
+      };
+    }, []);
 
     const createContext = useCallback(
       function createPluginContext<T = unknown>(
@@ -76,12 +89,6 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
       [onChange]
     );
 
-    const shouldRenderOverlay = useMemo(() => {
-      return pluginInstances.some(
-        (pluginWithConfig) => pluginWithConfig.plugin.renderOverlay
-      );
-    }, [pluginInstances]);
-
     useEffect(() => {
       if (externalValue !== undefined && !processingRef.current) {
         setInternalValue(externalValue);
@@ -89,7 +96,7 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
     }, [externalValue]);
 
     useEffect(() => {
-      pluginInstances.forEach((pluginWithConfig) => {
+      pluginInstancesRef.current.forEach((pluginWithConfig) => {
         pluginWithConfig.plugin.init?.(
           createContext(
             internalValue,
@@ -97,13 +104,7 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
           )
         );
       });
-
-      return () => {
-        pluginInstances.forEach((pluginWithConfig) => {
-          pluginWithConfig.plugin.destroy?.();
-        });
-      };
-    }, [pluginInstances, createContext, internalValue]);
+    }, [createContext, internalValue]);
 
     const handleChange = useCallback(
       async (e: ChangeEvent<HTMLInputElement>) => {
@@ -111,10 +112,10 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
         processingRef.current = true;
         setInternalValue(newValue);
 
-        if (pluginInstances) {
+        if (pluginInstancesRef.current) {
           let processedValue = newValue;
           try {
-            for (const pluginWithConfig of pluginInstances) {
+            for (const pluginWithConfig of pluginInstancesRef.current) {
               if (pluginWithConfig.plugin.onValueChange) {
                 processedValue = await pluginWithConfig.plugin.onValueChange(
                   processedValue,
@@ -138,12 +139,12 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
         onChange?.(newValue);
         processingRef.current = false;
       },
-      [pluginInstances, createContext, onChange]
+      [createContext, onChange]
     );
 
     const handleKeyDown = useCallback(
       (e: KeyboardEvent<HTMLInputElement>) => {
-        pluginInstances.forEach((pluginWithConfig) => {
+        pluginInstancesRef.current.forEach((pluginWithConfig) => {
           pluginWithConfig.plugin.onKeyDown?.(
             e,
             createContext(
@@ -153,13 +154,13 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
           );
         });
       },
-      [pluginInstances, createContext, internalValue]
+      [createContext, internalValue]
     );
 
     const handleSelect = useCallback(() => {
       setInternalValue((prev) => prev);
 
-      pluginInstances.forEach((pluginWithConfig) => {
+      pluginInstancesRef.current.forEach((pluginWithConfig) => {
         pluginWithConfig.plugin.onSelect?.(
           createContext(
             internalValue,
@@ -167,16 +168,16 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
           )
         );
       });
-    }, [pluginInstances, createContext, internalValue]);
+    }, [createContext, internalValue]);
 
     const handleBlur = useCallback(() => {
-      pluginInstances.forEach((pluginWithConfig) => {
+      pluginInstancesRef.current.forEach((pluginWithConfig) => {
         pluginWithConfig.plugin.onBlur?.();
       });
-    }, [pluginInstances]);
+    }, []);
 
     const handleFocus = useCallback(() => {
-      pluginInstances.forEach((pluginWithConfig) => {
+      pluginInstancesRef.current.forEach((pluginWithConfig) => {
         pluginWithConfig.plugin.onFocus?.(
           createContext(
             internalValue,
@@ -184,11 +185,11 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
           )
         );
       });
-    }, [pluginInstances, createContext, internalValue]);
+    }, [createContext, internalValue]);
 
     const customInputRenderers = useMemo(
-      () => pluginInstances.filter((p) => p.plugin.renderInput),
-      [pluginInstances]
+      () => pluginInstancesRef.current.filter((p) => p.plugin.renderInput),
+      []
     );
 
     if (
@@ -234,13 +235,17 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
             />
           )}
         </div>
-        {shouldRenderOverlay && (
-          <PluginOverlay
-            pluginInstance={pluginInstances[0]}
-            internalValue={internalValue}
-            createContext={createContext}
-            anchorEl={inputWrapperRef.current}
-          />
+        {pluginInstancesRef.current.map(
+          (pluginInstance) =>
+            pluginInstance.plugin.renderOverlay && (
+              <PluginOverlay
+                key={`overlay-${pluginInstance.plugin.name}`}
+                pluginInstance={pluginInstance}
+                internalValue={internalValue}
+                createContext={createContext}
+                anchorEl={inputWrapperRef.current}
+              />
+            )
         )}
       </div>
     );

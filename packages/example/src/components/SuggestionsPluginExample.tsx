@@ -42,12 +42,11 @@ export const SuggestionsPluginExample = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Suggestions Plugin Example</CardTitle>
+        <CardTitle>Try typing:</CardTitle>
       </CardHeader>
       <CardContent>
-        <h2>Try typing:</h2>
-        <ul>
-          <li>
+        <ul className='flex flex-col gap-4'>
+          <li className='flex flex-col gap-2'>
             <Label htmlFor='emoji-input'>
               <code>:grin</code> for emoji suggestions
             </Label>
@@ -71,7 +70,7 @@ export const SuggestionsPluginExample = () => {
               ]}
             />
           </li>
-          <li>
+          <li className='flex flex-col gap-2'>
             <Label htmlFor='template-variable-input'>
               <code>{'{{.'}</code> for template variable suggestions
             </Label>
@@ -91,7 +90,7 @@ export const SuggestionsPluginExample = () => {
               ]}
             />
           </li>
-          <li>
+          <li className='flex flex-col gap-2'>
             <Label htmlFor='issue-input'>
               <code>#123</code> or <code>issue-456</code> for issue references
             </Label>

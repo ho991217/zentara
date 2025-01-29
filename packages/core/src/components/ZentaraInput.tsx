@@ -1,24 +1,18 @@
 import {
-  useCallback,
   useEffect,
   useRef,
   useState,
   useMemo,
-  type ChangeEvent,
-  type KeyboardEvent,
   forwardRef,
   InputHTMLAttributes,
 } from 'react';
-import {
-  isPluginFactory,
-  type PluginContext,
-  type PluginOrFactory,
-  type PluginWithConfig,
-  type AnyConfig,
-} from '../types';
+import { type PluginContext, type PluginOrFactory } from '../types';
 import '../styles/zentaraInput.css';
 import { PluginOverlay } from './PluginOverlay';
 import { composeRefs } from '../utils/composeRefs';
+import { usePlugins } from './hooks/usePlugins';
+import { useCreateContext } from './hooks/useCreateContext';
+import { useInputHandlers } from './hooks/useInputHandlers';
 
 export interface InputRenderProps<TConfig = unknown>
   extends PluginContext<TConfig>,
@@ -37,163 +31,43 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
     const { value: externalValue, onChange, plugins, ...inputProps } = props;
     const [internalValue, setInternalValue] = useState(externalValue || '');
     const inputWrapperRef = useRef<HTMLDivElement>(null);
-    const processingRef = useRef(false);
     const inputRef = useRef<HTMLInputElement>(null);
-    const pluginInstancesRef = useRef<PluginWithConfig<AnyConfig>[]>([]);
 
-    // Create plugin instances
-    if (
-      plugins &&
-      (!pluginInstancesRef.current || pluginInstancesRef.current.length === 0)
-    ) {
-      pluginInstancesRef.current = plugins.map((pluginConfig) => {
-        if (isPluginFactory(pluginConfig)) {
-          return {
-            plugin: pluginConfig.createInstance(),
-            config: pluginConfig.config,
-          };
-        }
-        return pluginConfig;
-      });
-    }
-
-    // cleanup on unmount
-    useEffect(() => {
-      return () => {
-        pluginInstancesRef.current.forEach((pluginWithConfig) => {
-          pluginWithConfig.plugin.destroy?.();
-        });
-        pluginInstancesRef.current = [];
-      };
-    }, []);
-
-    const createContext = useCallback(
-      function createPluginContext<T = unknown>(
-        value: string,
-        pluginWithConfig?: PluginWithConfig<T>
-      ): PluginContext<T> {
-        return {
-          value,
-          setValue: (newValue: string) => {
-            setInternalValue(newValue);
-            onChange?.(newValue);
-          },
-          cursor: {
-            start: inputRef.current?.selectionStart ?? value.length,
-            end: inputRef.current?.selectionEnd ?? value.length,
-          },
-          inputRef,
-          config: pluginWithConfig?.config,
-        };
-      },
-      [onChange]
+    const pluginsRef = usePlugins(plugins);
+    const createContext = useCreateContext(
+      onChange,
+      setInternalValue,
+      inputRef
     );
+    const {
+      handleChange,
+      handleKeyDown,
+      handleSelect,
+      handleBlur,
+      handleFocus,
+      processingRef,
+    } = useInputHandlers(pluginsRef, createContext, setInternalValue, onChange);
 
     useEffect(() => {
       if (externalValue !== undefined && !processingRef.current) {
         setInternalValue(externalValue);
       }
-    }, [externalValue]);
+    }, [externalValue, processingRef.current]);
 
     useEffect(() => {
-      pluginInstancesRef.current.forEach((pluginWithConfig) => {
+      pluginsRef.current.forEach((pluginWithConfig) => {
         pluginWithConfig.plugin.init?.(
-          createContext(
-            internalValue,
-            pluginWithConfig as PluginWithConfig<AnyConfig>
-          )
+          createContext(internalValue, pluginWithConfig)
         );
       });
-    }, [createContext, internalValue]);
-
-    const handleChange = useCallback(
-      async (e: ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value;
-        processingRef.current = true;
-        setInternalValue(newValue);
-
-        if (pluginInstancesRef.current) {
-          let processedValue = newValue;
-          try {
-            for (const pluginWithConfig of pluginInstancesRef.current) {
-              if (pluginWithConfig.plugin.onValueChange) {
-                processedValue = await pluginWithConfig.plugin.onValueChange(
-                  processedValue,
-                  createContext(
-                    processedValue,
-                    pluginWithConfig as PluginWithConfig<AnyConfig>
-                  )
-                );
-              }
-            }
-            if (processedValue !== newValue) {
-              setInternalValue(processedValue);
-              onChange?.(processedValue);
-              return;
-            }
-          } finally {
-            processingRef.current = false;
-          }
-        }
-
-        onChange?.(newValue);
-        processingRef.current = false;
-      },
-      [createContext, onChange]
-    );
-
-    const handleKeyDown = useCallback(
-      (e: KeyboardEvent<HTMLInputElement>) => {
-        pluginInstancesRef.current.forEach((pluginWithConfig) => {
-          pluginWithConfig.plugin.onKeyDown?.(
-            e,
-            createContext(
-              internalValue,
-              pluginWithConfig as PluginWithConfig<AnyConfig>
-            )
-          );
-        });
-      },
-      [createContext, internalValue]
-    );
-
-    const handleSelect = useCallback(() => {
-      setInternalValue((prev) => prev);
-
-      pluginInstancesRef.current.forEach((pluginWithConfig) => {
-        pluginWithConfig.plugin.onSelect?.(
-          createContext(
-            internalValue,
-            pluginWithConfig as PluginWithConfig<AnyConfig>
-          )
-        );
-      });
-    }, [createContext, internalValue]);
-
-    const handleBlur = useCallback(() => {
-      pluginInstancesRef.current.forEach((pluginWithConfig) => {
-        pluginWithConfig.plugin.onBlur?.();
-      });
-    }, []);
-
-    const handleFocus = useCallback(() => {
-      pluginInstancesRef.current.forEach((pluginWithConfig) => {
-        pluginWithConfig.plugin.onFocus?.(
-          createContext(
-            internalValue,
-            pluginWithConfig as PluginWithConfig<AnyConfig>
-          )
-        );
-      });
-    }, [createContext, internalValue]);
+    }, [createContext, internalValue, pluginsRef.current]);
 
     const customInputRenderers = useMemo(
-      () => pluginInstancesRef.current.filter((p) => p.plugin.renderInput),
-      []
+      () => pluginsRef.current.filter((p) => p.plugin.renderInput),
+      [pluginsRef.current]
     );
 
     if (
-      customInputRenderers &&
       customInputRenderers.length > 1 &&
       process.env.NODE_ENV !== 'production'
     ) {
@@ -204,7 +78,7 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
       );
     }
 
-    const customInputRenderer = customInputRenderers?.[0]?.plugin.renderInput;
+    const customInputRenderer = customInputRenderers[0]?.plugin.renderInput;
 
     return (
       <div className='zentara-input-container'>
@@ -235,7 +109,7 @@ export const ZentaraInput = forwardRef<HTMLInputElement, ZentaraInputProps>(
             />
           )}
         </div>
-        {pluginInstancesRef.current.map(
+        {pluginsRef.current.map(
           (pluginInstance) =>
             pluginInstance.plugin.renderOverlay && (
               <PluginOverlay

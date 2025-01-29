@@ -17,6 +17,7 @@ export const suggestionsPlugin = createPlugin<
     suggestions: [],
     selectedIndex: 0,
     currentChunk: null,
+    availableSuggestions: [],
   },
   create: (stateManager) => {
     let preventBlur = false;
@@ -39,13 +40,23 @@ export const suggestionsPlugin = createPlugin<
       )}${transformed}${context.value.slice(state.currentChunk.end)}`;
 
       context.setValue(newValue);
-      stateManager.reset();
+      stateManager.setState({
+        isOpen: false,
+        suggestions: [],
+        selectedIndex: 0,
+        currentChunk: null,
+      });
     };
 
     return {
       name: 'suggestions',
 
       init: (context: PluginContext<SuggestionsPluginConfig>) => {
+        if (context.config?.suggestions) {
+          stateManager.setState({
+            availableSuggestions: context.config.suggestions,
+          });
+        }
         updateSuggestions(context, stateManager);
       },
 
@@ -53,6 +64,18 @@ export const suggestionsPlugin = createPlugin<
         value: string,
         context: PluginContext<SuggestionsPluginConfig>
       ) => {
+        if (context.config?.suggestions) {
+          const state = stateManager.getState();
+          const newSuggestions = context.config.suggestions;
+          if (
+            newSuggestions.length !== state.availableSuggestions.length ||
+            newSuggestions.some((s, i) => s !== state.availableSuggestions[i])
+          ) {
+            stateManager.setState({
+              availableSuggestions: newSuggestions,
+            });
+          }
+        }
         updateSuggestions(context, stateManager);
         return value;
       },
@@ -63,7 +86,12 @@ export const suggestionsPlugin = createPlugin<
 
       onBlur: () => {
         if (!preventBlur && stateManager.getState().isOpen) {
-          stateManager.reset();
+          stateManager.setState({
+            isOpen: false,
+            suggestions: [],
+            selectedIndex: 0,
+            currentChunk: null,
+          });
         }
         preventBlur = false;
       },
@@ -147,8 +175,12 @@ export const suggestionsPlugin = createPlugin<
         document.body.removeChild(span);
 
         // 오버레이 위치 계산
-        const VERTICAL_PADDING = 8;
-        const top = inputRect.bottom + VERTICAL_PADDING + window.scrollY;
+        const DEFAULT_VERTICAL_PADDING = 4;
+        const top =
+          inputRect.bottom +
+          DEFAULT_VERTICAL_PADDING +
+          (config.suggestionsListOffset || 0) +
+          window.scrollY;
         const left = inputRect.left + cursorOffset + window.scrollX;
 
         return (

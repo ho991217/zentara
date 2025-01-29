@@ -25,6 +25,7 @@ export interface SuggestionsPluginConfig {
   transform?: (suggestion: string) => string;
   maxSuggestions?: number;
   renderSuggestion?: (suggestion: string) => ReactNode;
+  suggestionsListOffset?: number;
 }
 
 export interface SuggestionsPluginState {
@@ -37,4 +38,5 @@ export interface SuggestionsPluginState {
     end: number;
     trigger: string;
   } | null;
+  availableSuggestions: string[];
 }

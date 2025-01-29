@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { StyledZentaraInput } from './StyledZentaraInput';
 import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { Collapsible } from '@radix-ui/react-collapsible';
+import { CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 
 const emojiMap = {
   grinning: '😀',
@@ -17,28 +21,14 @@ const emojiMap = {
   star: '⭐',
 } as const;
 
-const variables = [
-  'name',
-  'email',
-  'age',
-  'address',
-  'phone',
-  'company',
-  'position',
-  'department',
-] as const;
-
-const issues = [
-  { id: '123', title: '버그 수정: 입력 창 포커스 문제' },
-  { id: '456', title: '기능 추가: 다크 모드 지원' },
-  { id: '789', title: '문서 업데이트: API 가이드' },
-  { id: '101', title: '성능 개선: 렌더링 최적화' },
-] as const;
-
 export const SuggestionsPluginExample = () => {
   const [value, setValue] = useState('');
   const [value2, setValue2] = useState('');
   const [value3, setValue3] = useState('');
+
+  const [variables, setVariables] = useState(['name', 'email', 'age']);
+  const [newVariable, setNewVariable] = useState('');
+
   return (
     <Card>
       <CardHeader>
@@ -70,6 +60,7 @@ export const SuggestionsPluginExample = () => {
               ]}
             />
           </li>
+
           <li className='flex flex-col gap-2'>
             <Label htmlFor='template-variable-input'>
               <code>{'{{.'}</code> for template variable suggestions
@@ -81,7 +72,7 @@ export const SuggestionsPluginExample = () => {
               plugins={[
                 suggestionsPlugin({
                   triggers: ['{', '{{', '{{.'],
-                  suggestions: [...variables],
+                  suggestions: variables,
                   transform: (suggestion) => `{{.${suggestion}}}`,
                   renderSuggestion: (suggestion) => (
                     <code>{`{{.${suggestion}}}`}</code>
@@ -90,26 +81,47 @@ export const SuggestionsPluginExample = () => {
               ]}
             />
           </li>
-          <li className='flex flex-col gap-2'>
-            <Label htmlFor='issue-input'>
-              <code>#123</code> or <code>issue-456</code> for issue references
-            </Label>
-            <StyledZentaraInput
-              id='issue-input'
-              value={value3}
-              onChange={setValue3}
-              plugins={[
-                suggestionsPlugin({
-                  triggers: ['#', 'issue-'],
-                  suggestions: issues.map((issue) => issue.id),
-                  renderSuggestion: (suggestion) => (
-                    <span>{`#${suggestion}`}</span>
-                  ),
-                  transform: (suggestion) => `#${suggestion}`,
-                }),
-              ]}
-            />
-          </li>
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant='ghost'>
+                <ChevronDown className='size-3' /> Add variables
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className='p-4 flex flex-col gap-2'>
+              <form
+                className='flex flex-col gap-2'
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setVariables((prev) => [...prev, newVariable]);
+                }}
+              >
+                <div className='flex gap-2'>
+                  <StyledZentaraInput
+                    id='add-variable'
+                    className='flex-1'
+                    value={newVariable}
+                    onChange={setNewVariable}
+                  />
+                  <Button type='submit'>Add</Button>
+                </div>
+              </form>
+              <ul className='flex gap-2'>
+                {variables.map((variable) => (
+                  <li
+                    key={variable}
+                    className='text-xs bg-muted py-1 px-2 rounded-md cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors'
+                    onClick={() => {
+                      setVariables((prev) =>
+                        prev.filter((v) => v !== variable)
+                      );
+                    }}
+                  >
+                    {variable}
+                  </li>
+                ))}
+              </ul>
+            </CollapsibleContent>
+          </Collapsible>
         </ul>
       </CardContent>
     </Card>

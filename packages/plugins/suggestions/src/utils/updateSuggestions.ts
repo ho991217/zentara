@@ -13,6 +13,19 @@ export const updateSuggestions = (
   const config = context.config;
   if (!config) return;
 
+  const state = stateManager.getState();
+
+  // 배열 내용 비교로 변경 감지
+  const newSuggestions = config.suggestions;
+  if (
+    newSuggestions.length !== state.availableSuggestions.length ||
+    newSuggestions.some((s, i) => s !== state.availableSuggestions[i])
+  ) {
+    stateManager.setState({
+      availableSuggestions: newSuggestions,
+    });
+  }
+
   const chunk = getCurrentChunk(
     context.value,
     context.cursor.start,
@@ -20,14 +33,19 @@ export const updateSuggestions = (
   );
 
   if (!chunk) {
-    if (stateManager.getState().isOpen) {
-      stateManager.reset();
+    if (state.isOpen) {
+      stateManager.setState({
+        isOpen: false,
+        suggestions: [],
+        selectedIndex: 0,
+        currentChunk: null,
+      });
     }
     return;
   }
 
   const searchText = chunk.text.slice(chunk.trigger.length).toLowerCase();
-  const filteredSuggestions = config.suggestions
+  const filteredSuggestions = newSuggestions
     .filter((suggestion: string) =>
       suggestion.toLowerCase().startsWith(searchText)
     )
@@ -44,6 +62,11 @@ export const updateSuggestions = (
       currentChunk: chunk,
     });
   } else {
-    stateManager.reset();
+    stateManager.setState({
+      isOpen: false,
+      suggestions: [],
+      selectedIndex: 0,
+      currentChunk: null,
+    });
   }
 };

@@ -1,8 +1,15 @@
+type CurrentChunk = {
+  text: string;
+  start: number;
+  end: number;
+  trigger: string;
+};
+
 export const getCurrentChunk = (
   value: string,
   cursorPosition: number,
   triggers: string[]
-): { text: string; start: number; end: number; trigger: string } | null => {
+): CurrentChunk | null => {
   const beforeCursor = value.slice(0, cursorPosition);
   const afterCursor = value.slice(cursorPosition);
 

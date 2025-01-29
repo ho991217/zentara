@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ZentaraInput } from '@zentara/core';
 import { suggestionsPlugin } from '@zentara/plugin-suggestions';
-import type { SuggestionsPluginConfig } from '@zentara/plugin-suggestions';
 import './App.css';
 import '@zentara/core/dist/index.css';
 import '@zentara/plugin-suggestions/dist/index.css';
@@ -30,17 +29,17 @@ const variables = [
   'department',
 ] as const;
 
-// const issues = [
-//   { id: '123', title: '버그 수정: 입력 창 포커스 문제' },
-//   { id: '456', title: '기능 추가: 다크 모드 지원' },
-//   { id: '789', title: '문서 업데이트: API 가이드' },
-//   { id: '101', title: '성능 개선: 렌더링 최적화' },
-// ] as const;
+const issues = [
+  { id: '123', title: '버그 수정: 입력 창 포커스 문제' },
+  { id: '456', title: '기능 추가: 다크 모드 지원' },
+  { id: '789', title: '문서 업데이트: API 가이드' },
+  { id: '101', title: '성능 개선: 렌더링 최적화' },
+] as const;
 
 function App() {
   const [value, setValue] = useState('');
   const [value2, setValue2] = useState('');
-
+  const [value3, setValue3] = useState('');
   return (
     <div className='container'>
       <h1>Zentara Example</h1>
@@ -57,7 +56,7 @@ function App() {
             <code>#123</code> or <code>issue-456</code> for issue references
           </li>
         </ul>
-        <ZentaraInput<SuggestionsPluginConfig>
+        <ZentaraInput
           value={value}
           onChange={setValue}
           plugins={[
@@ -75,7 +74,7 @@ function App() {
             }),
           ]}
         />
-        <ZentaraInput<SuggestionsPluginConfig>
+        <ZentaraInput
           value={value2}
           onChange={setValue2}
           plugins={[
@@ -86,6 +85,18 @@ function App() {
               renderSuggestion: (suggestion) => (
                 <code>{`{{.${suggestion}}}`}</code>
               ),
+            }),
+          ]}
+        />
+        <ZentaraInput
+          value={value3}
+          onChange={setValue3}
+          plugins={[
+            suggestionsPlugin({
+              triggers: ['#', 'issue-'],
+              suggestions: issues.map((issue) => issue.id),
+              renderSuggestion: (suggestion) => <span>{`#${suggestion}`}</span>,
+              transform: (suggestion) => `#${suggestion}`,
             }),
           ]}
         />

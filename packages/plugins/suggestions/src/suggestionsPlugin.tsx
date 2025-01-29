@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import { SUGGESTION_CONFIG } from "./constants";
+import { SUGGESTION_CONFIG } from './constants';
 import { getSuggestions } from './utils/getSuggestions';
 import { findMatchingRule } from './utils/findMatchingRule';
 import type {
@@ -34,7 +34,10 @@ export const suggestionsPlugin = createPluginFactory<
     name: 'suggestions',
 
     onValueChange: (value, context) => {
-      const config = context.config ?? { rules: [], maxSuggestions: SUGGESTION_CONFIG.MAX_SUGGESTIONS };
+      const config = context.config ?? {
+        rules: [],
+        maxSuggestions: SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT,
+      };
       const beforeCursor = value.slice(0, context.cursor.start);
 
       const match = findMatchingRule(beforeCursor, config.rules);
@@ -58,7 +61,10 @@ export const suggestionsPlugin = createPluginFactory<
         return;
       }
 
-      const config = context.config ?? { rules: [], maxSuggestions: SUGGESTION_CONFIG.MAX_SUGGESTIONS };
+      const config = context.config ?? {
+        rules: [],
+        maxSuggestions: SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT,
+      };
       const value = context.value;
       const beforeCursor = value.slice(0, context.cursor.start);
       const triggerIndex = beforeCursor.lastIndexOf(state.activeTrigger);
@@ -127,7 +133,10 @@ export const suggestionsPlugin = createPluginFactory<
     },
 
     renderOverlay: (context) => {
-      const config = context.config ?? { rules: [], maxSuggestions: SUGGESTION_CONFIG.MAX_SUGGESTIONS };
+      const config = context.config ?? {
+        rules: [],
+        maxSuggestions: SUGGESTION_CONFIG.DEFAULT_MAX_SUGGESTION_COUNT,
+      };
       const state = stateManager.usePluginState();
 
       const value = context.value;

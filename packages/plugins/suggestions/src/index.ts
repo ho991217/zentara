@@ -1,4 +1,4 @@
-import './suggestions.css';
+import './styles/suggestions.css';
 
 export { suggestionsPlugin } from './suggestionsPlugin';
 export type {

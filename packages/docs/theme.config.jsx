@@ -55,7 +55,17 @@ export default {
           property='og:description'
           content={frontMatter.description || 'Flexible input component'}
         />
-        <meta property='og:image' content='./opengraph-image.png' />
+        <meta
+          property='og:image'
+          content='https://zentara.vercel.app/opengraph-image.png'
+        />
+        <meta property='og:type' content='website' />
+        <meta property='og:site_name' content='Zentara' />
+        <meta name='twitter:card' content='summary_large_image' />
+        <meta
+          name='twitter:image'
+          content='https://zentara.vercel.app/opengraph-image.png'
+        />
       </>
     );
   },

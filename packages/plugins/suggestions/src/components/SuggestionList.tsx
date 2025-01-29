@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { SuggestionItem } from '../types';
+import type { SuggestionItem } from '../types/suggestions';
 
 /** Props for the suggestions list component */
 interface SuggestionsListProps<T extends SuggestionItem = string> {

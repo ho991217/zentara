@@ -1,7 +1,7 @@
 import type {
   CreatePluginConfig,
   CreatePlugin,
-} from './createPluginFactory.types';
+} from '../types';
 import { StateManager } from './StateManager';
 
 /**

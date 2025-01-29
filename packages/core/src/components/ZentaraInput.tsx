@@ -9,9 +9,8 @@ import {
   type KeyboardEvent,
   type CSSProperties,
 } from 'react';
-import type { PluginContext } from './types';
-import type { PluginWithConfig } from './plugin';
-import './ZentaraInput.css';
+import type { PluginContext, PluginWithConfig } from '../types';
+import '../styles/zentaraInput.css';
 
 export interface ZentaraInputProps<TConfig = unknown> {
   value?: string;
@@ -165,7 +164,11 @@ export function ZentaraInput<TConfig = unknown>({
     [plugins]
   );
 
-  if (customInputRenderers && customInputRenderers.length > 1) {
+  if (
+    customInputRenderers &&
+    customInputRenderers.length > 1 &&
+    process.env.NODE_ENV !== 'production'
+  ) {
     console.warn(
       `Multiple plugins with renderInput detected. Only the first one will be used: ${customInputRenderers
         .map((p) => p.plugin.name)

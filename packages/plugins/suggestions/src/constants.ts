@@ -1,0 +1,3 @@
+export const SUGGESTION_CONFIG = {
+  MAX_SUGGESTIONS: 5,
+}

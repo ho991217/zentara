@@ -1,5 +1,6 @@
 import type { KeyboardEvent, ReactNode } from 'react';
-import type { InputRenderProps, PluginContext } from './types';
+import type { InputRenderProps } from './inputRenderProps';
+import type { PluginContext } from './pluginContext';
 
 /** Plugin interface for extending ZentaraInput functionality */
 export interface Plugin<TConfig = unknown> {

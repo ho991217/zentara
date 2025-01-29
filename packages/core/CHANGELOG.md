@@ -1,5 +1,11 @@
 # @zentara/core
 
+## 0.4.1
+
+### Patch Changes
+
+- f14fd44: Fixed bug
+
 ## 0.4.0
 
 ### Minor Changes

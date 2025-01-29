@@ -1,9 +1,11 @@
 :root {
-  --zentara-primary: #2563eb;
+  --zentara-primary: #009CEB;
   --zentara-error: #ef4444;
   --zentara-border: #e2e8f0;
   --zentara-text: #000000;
   --zentara-text-secondary: #64748b;
+  --zentara-hover: #f1f5f9;
+  --zentara-selected: #e2e8f0;
   --zentara-bg: #ffffff;
   --zentara-spacing-xs: 0.25rem;
   --zentara-spacing-sm: 0.5rem;
@@ -60,10 +62,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --zentara-primary: #60a5fa;
+    --zentara-primary: #009CEB;
     --zentara-border: #404040;
     --zentara-text: #ffffff;
     --zentara-text-secondary: #94a3b8;
     --zentara-bg: #1e1e1e;
+    --zentara-hover: #2a2a2a;
+    --zentara-selected: #333333;
   }
 }

@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import type { SuggestionItem, SuggestionRule } from '../types';
 
 /** Filter suggestions based on search text */

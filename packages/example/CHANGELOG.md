@@ -1,5 +1,13 @@
 # @zentara/example
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [f14fd44]
+  - @zentara/plugin-suggestions@0.4.0
+  - @zentara/core@0.4.1
+
 ## 0.1.0
 
 ### Minor Changes

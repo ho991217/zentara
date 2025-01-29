@@ -1,5 +1,16 @@
 # @zentara/plugin-suggestions
 
+## 0.4.0
+
+### Minor Changes
+
+- f14fd44: Fixed bug
+
+### Patch Changes
+
+- Updated dependencies [f14fd44]
+  - @zentara/core@0.4.1
+
 ## 0.3.0
 
 ### Minor Changes

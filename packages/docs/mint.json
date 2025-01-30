@@ -33,18 +33,20 @@
     },
     {
       "group": "Essentials",
-      "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
-      ]
+      "pages": ["essentials/basic-usage", "essentials/style"]
     },
     {
-      "group": "API Reference",
-      "pages": ["api-reference/introduction"]
+      "group": "Plugins",
+      "pages": [
+        "plugins/plugins",
+        {
+          "group": "@zentara/plugin-suggestions",
+          "pages": [
+            "plugins/plugin-suggestions/basic-usage",
+            "plugins/plugin-suggestions/api-reference"
+          ]
+        }
+      ]
     }
   ],
   "footerSocials": {

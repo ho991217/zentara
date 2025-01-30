@@ -1,0 +1,24 @@
+---
+title: 'Basic Usage'
+description: 'Learn how to use the suggestions plugin'
+---
+
+## Basic Usage
+
+The suggestions plugin is a plugin that allows you to add suggestions to the input.
+
+```tsx App.tsx
+import { suggestionsPlugin } from '@zentara/plugin-suggestions';
+
+// ...
+return (
+  <ZentaraInput
+    plugins={[
+      suggestionsPlugin({
+        triggers: ['{', '{{', '{{.'],
+        suggestions: ['foo', 'bar', 'baz'],
+      }),
+    ]}
+  />
+);
+```

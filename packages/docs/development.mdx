@@ -41,4 +41,27 @@ function App() {
 }
 ```
 
+### Use with other libraries
+
+You can use the component with other libraries like `react-hook-form`, `formik`, `zod`, etc.
+
+```tsx App.tsx
+import { ZentaraInput } from '@zentara/core';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const schema = z.object({
+  name: z.string().min(1),
+});
+
+function App() {
+  const { register, handleSubmit } = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+  });
+
+  return <ZentaraInput {...register('name')} />;
+}
+```
+
 Curious about what changed? [Check out the release notes.](https://github.com/ho991217/zentara/releases)

@@ -1,5 +1,7 @@
 # Zentara
 
+![npm](https://badgen.net/npm/dt/@zentara/core) ![npm](https://badgen.net/npm/v/@zentara/core) ![bundle size](https://badgen.net/bundlephobia/min/@zentara/core) ![license](https://badgen.net/npm/license/@zentara/core)
+
 [English](README.md) | [한국어](README.ko.md)
 
 A powerful React-based input component library with support for plugins like emoji selection and template variable autocompletion.

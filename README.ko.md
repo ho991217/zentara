@@ -1,5 +1,7 @@
 # Zentara
 
+![npm](https://badgen.net/npm/dt/@zentara/core) ![npm](https://badgen.net/npm/v/@zentara/core) ![bundle size](https://badgen.net/bundlephobia/min/@zentara/core) ![license](https://badgen.net/npm/license/@zentara/core)
+
 [English](README.md) | [한국어](README.ko.md)
 
 Zentara는 React 기반의 강력한 입력 컴포넌트 라이브러리입니다. 이모지 선택, 템플릿 변수 자동완성 등 다양한 플러그인을 지원합니다.
